@@ -11,6 +11,16 @@ def harvest_headers(project_id, service):
         "Content-Type": "application/json",
     }
 
+def runn_headers(project_id, service):
+    return {
+        "User-Agent": "TPX Cloud Functions",
+        "Authorization": "Bearer "
+        + access_secret_version(project_id, "RUNN_ACCESS_TOKEN"),
+        "service": service,
+        "Content-Type": "application/json",
+        "Accept-Version": "1.0.0"
+    }
+
 
 def hibob_headers(project_id, service):
     return {
