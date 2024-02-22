@@ -3,7 +3,7 @@ variable "region" {
 }
 
 variable "project" {
-  default = "tpx-consulting-dashboards"
+  default = "tpx-dx-dashboards"
 }
 
 variable "env" {
