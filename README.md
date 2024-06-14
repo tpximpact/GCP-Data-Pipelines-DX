@@ -45,36 +45,29 @@ These cloud functions are part of the HR Data Integration and Reporting system a
 
 1. Clone this repository:
 
-    `git clone https://github.com/tpximpact/GCP-Data-Pipelines.git`
-
+   `git clone git@github.com:tpximpact/GCP-Data-Pipelines-DX.git`
 
 2. Navigate to the project directory:
 
-    `cd cloud_functions/api_name/endpoint_name`
+   `cd cloud_functions/api_name/endpoint_name`
 
 3. Install dependencies using Poetry:
 
-    `poetry install`
-
+   `poetry install`
 
 4. Export the dependencies to a `requirements.txt` file
-    (This needs to be done to deploy to Google cloud):
-    
-    `poetry export --format=requirements.txt --output=requirements.txt --without-hashes`
+   (This needs to be done to deploy to Google cloud):
 
+   `poetry export --format=requirements.txt --output=requirements.txt --without-hashes`
 
 5. Set up Terraform:
-    
-    `terraform init`
 
+   `terraform init`
 
 6. Apply the Terraform configuration:
-    
-    `terraform apply`
 
-
+   `terraform apply`
 
 ### Usage
 
 The cloud functions in this repository connect to HiBob, Harvest, Forecast, and Pipedrive APIs to collect and process data for the HR and Finance systems. The collected data is stored in raw tables within Google BigQuery. In the future, SQL queries will be added to generate tables that can be connected to Google Data Studio for creating comprehensive reports on the gathered data.
-

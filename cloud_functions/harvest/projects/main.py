@@ -44,8 +44,11 @@ def main(data: dict, context):
     df["ends_on"] = df["ends_on"].apply(
         lambda x: datetime.strptime(x, "%Y-%m-%d").date() if x else None
     )
+
     df["completion_percentage"] = df.apply(
         lambda row: None
+        if row["starts_on"] is None
+        else None
         if row["ends_on"] is None
         else 1
         if row["ends_on"] < datetime.now().date()
