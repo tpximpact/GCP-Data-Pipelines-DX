@@ -111,7 +111,7 @@ resource "google_storage_bucket_object" "harvest_user_project_assignments" {
 
 resource "google_cloudfunctions_function" "harvest_user_project_assignments" {
   name                = "harvest_user_project_assignments_pipe"
-  runtime             = "python39" # of course changeable
+  runtime             = "python312" # of course changeable
   available_memory_mb = 1024
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
