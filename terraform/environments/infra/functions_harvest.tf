@@ -20,7 +20,7 @@ resource "google_storage_bucket_object" "harvest_timesheet" {
 
 resource "google_cloudfunctions_function" "harvest_timesheet" {
   name                = "harvest_timesheet_pipe"
-  runtime             = "python39" # of course changeable
+  runtime             = "python312" # of course changeable
   available_memory_mb = 2048
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
