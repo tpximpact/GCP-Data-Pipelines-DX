@@ -55,13 +55,13 @@ def main(data: dict, context):
             if not nextCursor:
                 break
         else:
-            raise Exception(f"Failed to fetch people: {response.status_code}, {response.text}")
+            raise Exception(f"Failed to fetch actuals: {response.status_code}, {response.text}")
     
     
     print(f"Total number of actuals fetched: {len(actuals)}")
 
-    assignments_df = pd.DataFrame(actuals)
-    write_to_bigquery(config, assignments_df, "WRITE_TRUNCATE")
+    actuals_df = pd.DataFrame(actuals)
+    write_to_bigquery(config, actuals_df, "WRITE_TRUNCATE")
     print("Done")
 
 

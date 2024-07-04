@@ -54,7 +54,7 @@ def main(data: dict, context):
             if not nextCursor:
                 break
         else:
-            raise Exception(f"Failed to fetch people: {response.status_code}, {response.text}")
+            raise Exception(f"Failed to fetch assignments: {response.status_code}, {response.text}")
     
     
     print(f"Total number of assignments fetched: {len(assignments)}")
