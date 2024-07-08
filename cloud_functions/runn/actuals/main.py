@@ -14,7 +14,7 @@ if not project_id:
 
 def load_config(project_id, service, nextCursor) -> dict:
     return {
-        "url": "https://api.runn.io/actuals/?minDate=2024-04-01&cursor="+nextCursor,
+        "url": "https://api.runn.io/actuals/?limit=500&cursor="+nextCursor,
         "headers": runn_headers(project_id, service),
         "dataset_id": "Runn_Raw",  #os.environ.get("DATASET_ID"),
         "gcp_project": project_id,
@@ -63,7 +63,6 @@ def main(data: dict, context):
     actuals_df = pd.DataFrame(actuals)
     write_to_bigquery(config, actuals_df, "WRITE_TRUNCATE")
     print("Done")
-
 
 if __name__ == "__main__":
     main({}, None)

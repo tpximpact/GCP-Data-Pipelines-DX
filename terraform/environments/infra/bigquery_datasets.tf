@@ -64,6 +64,19 @@ resource "google_bigquery_dataset" "runn_raw" {
   }
 }
 
+resource "google_bigquery_dataset" "runn_processed" {
+  dataset_id  = "Runn_Processed"
+  description = "Dataset for tables containing processed runn data"
+  location    = "europe-west2"
+
+  labels = {
+    env = var.env
+  }
+  default_encryption_configuration {
+    kms_key_name = google_kms_crypto_key.bigquery_key.id
+  }
+}
+
 resource "google_bigquery_dataset" "hibob_raw" {
   dataset_id  = "hibob_raw"
   description = "Dataset for hibob raw data"
