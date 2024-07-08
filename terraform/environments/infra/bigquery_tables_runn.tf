@@ -94,6 +94,24 @@ resource "google_bigquery_table" "runn_teams" {
   }
 }
 
+resource "google_bigquery_table" "runn_roles" {
+  dataset_id = google_bigquery_dataset.runn_raw.dataset_id
+  table_id   = "roles"
+
+  time_partitioning {
+    type = "DAY"
+  }
+
+  labels = {
+    env = var.env
+  }
+
+  deletion_protection = false
+
+  encryption_configuration {
+    kms_key_name = google_kms_crypto_key.bigquery_key.id
+  }
+}
 
 # Processed assignments table
 resource "google_bigquery_table" "runn_processed_assignments" {
