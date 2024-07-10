@@ -132,3 +132,58 @@ resource "google_bigquery_table" "runn_processed_assignments" {
     kms_key_name = google_kms_crypto_key.bigquery_key.id
   }
 }
+
+
+# Progress actuals
+
+resource "google_bigquery_table" "runn_progress_actuals" {
+  dataset_id = google_bigquery_dataset.runn_processed.dataset_id
+  table_id   = "progress_actuals"
+
+  schema = <<EOF
+  [
+    {
+      "name": "id",
+      "type": "STRING"
+    },
+    {
+      "name": "last_processed_cursor",
+      "type": "STRING"
+    },
+    {
+      "name": "start_process_time",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "last_processed_time",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "last_successful_write",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "completed",
+      "type": "BOOL",
+      "mode": "NULLABLE"
+    }
+  ]
+  EOF
+
+  time_partitioning {
+    type = "DAY"
+  }
+
+  labels = {
+    env = var.env
+  }
+
+  deletion_protection = false
+
+  encryption_configuration {
+    kms_key_name = google_kms_crypto_key.bigquery_key.id
+  }
+}
