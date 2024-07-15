@@ -116,7 +116,27 @@ resource "google_bigquery_table" "runn_roles" {
 # Processed assignments table
 resource "google_bigquery_table" "runn_processed_assignments" {
   dataset_id = google_bigquery_dataset.runn_processed.dataset_id
-  table_id   = "processed_assignments"
+  table_id   = "assignments"
+
+  time_partitioning {
+    type = "DAY"
+  }
+
+  labels = {
+    env = var.env
+  }
+
+  deletion_protection = false
+
+  encryption_configuration {
+    kms_key_name = google_kms_crypto_key.bigquery_key.id
+  }
+}
+
+#Processed actuals table
+resource "google_bigquery_table" "runn_processed_actuals" {
+  dataset_id = google_bigquery_dataset.runn_processed.dataset_id
+  table_id   = "actuals"
 
   time_partitioning {
     type = "DAY"
@@ -134,8 +154,7 @@ resource "google_bigquery_table" "runn_processed_assignments" {
 }
 
 
-# Progress actuals
-
+# Actuals progress status
 resource "google_bigquery_table" "runn_progress_actuals" {
   dataset_id = google_bigquery_dataset.runn_processed.dataset_id
   table_id   = "progress_actuals"

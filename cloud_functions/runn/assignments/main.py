@@ -28,7 +28,7 @@ def load_processed_config(project_id) -> dict:
     return {
         "dataset_id": "Runn_Processed",  #os.environ.get("DATASET_ID"),
         "gcp_project": project_id,
-        "table_name": "processed_assignments", #os.environ.get("TABLE_NAME"),
+        "table_name": "assignments", #os.environ.get("TABLE_NAME"),
         "location": "europe-west2", #os.environ.get("TABLE_LOCATION"),
     }
 

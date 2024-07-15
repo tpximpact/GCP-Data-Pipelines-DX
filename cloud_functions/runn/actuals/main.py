@@ -34,73 +34,18 @@ def write_runn_data_to_bigquery(config: dict, data: list) -> None:
     if df.empty:
         print("No data to process.")
         return
-    
-    # Get the existing IDs before the merge
-    query = f"SELECT id FROM `{dataset_id}.{table_name}`"
-    existing_ids = {row["id"] for row in client.query(query)}
-
-    # Split the data into records to update and records to insert
-    records_to_update = df[df['id'].isin(existing_ids)]
-    records_to_insert = df[~df['id'].isin(existing_ids)]
-
-    print(f"Records to insert {len(records_to_insert)} records")
-    print(f"Records to update {len(records_to_update)} records")
-
-    total_processed = 0
+   
+    print(f"Records to insert {len(df)} records")
 
     try:
-        if not records_to_insert.empty:
-            insert_df = pd.DataFrame(records_to_insert)
-            insert_job_config = bigquery.LoadJobConfig(write_disposition="WRITE_APPEND")
-            insert_job_config.autodetect = True
+        job_config = bigquery.LoadJobConfig(write_disposition="WRITE_APPEND")
+        job_config.autodetect = True
 
-            insert_job = client.load_table_from_dataframe(insert_df, table_ref, job_config=insert_job_config)
-            insert_job.result()
-            print(f"Inserted {len(records_to_insert)} new rows into {table_ref}")
-            total_processed += len(records_to_insert)
+        job = client.load_table_from_dataframe(df, table_ref, job_config=job_config)
+        job.result()
+        print(f"Inserted {len(df)} new rows into {table_ref}")
 
-        if not records_to_update.empty:
-            print(f"Updating data in target table {dataset_id}.{table_name}, total to update {len(records_to_update)} records")
-
-            # Create a temporary table for the records to update
-            temp_table_name = f"{table_name}_temp"
-            temp_table_ref = dataset_ref.table(temp_table_name)
-
-            # Load the records to update into a temporary table
-            temp_job_config = bigquery.LoadJobConfig(write_disposition="WRITE_TRUNCATE")
-            temp_job_config.autodetect = True
-
-            temp_job = client.load_table_from_dataframe(records_to_update, temp_table_ref, job_config=temp_job_config)
-            temp_job.result()
-
-            print(f"Loaded {len(records_to_update)} records into temporary table {temp_table_ref}")
-
-            # Generate the dynamic columns for the MERGE statement
-            columns = records_to_update.columns.tolist()
-            update_set = ", ".join([f"T.{col} = S.{col}" for col in columns])
-
-            # Construct the merge query
-            merge_query = f"""
-            MERGE `{dataset_id}.{table_name}` T
-            USING `{dataset_id}.{temp_table_name}` S
-            ON T.id = S.id
-            WHEN MATCHED THEN
-                UPDATE SET {update_set}
-            """
-
-            try:
-                merge_job = client.query(merge_query)
-                merge_job.result()
-                print(f"Updated {len(records_to_update)} rows in {table_ref}")
-                total_processed += len(records_to_update)
-            except BadRequest as e:
-                print(f"Error merging DataFrame to BigQuery BadRequest: {str(e)}")
-                return
-            finally:
-                # Clean up the temporary table
-                client.delete_table(temp_table_ref, not_found_ok=True)
-                print(f"Deleted temporary table {temp_table_ref}")
-
+        
     except BadRequest as e:
         print(f"Error writing DataFrame to BigQuery BadRequest: {str(e)}")
         return
@@ -108,13 +53,32 @@ def write_runn_data_to_bigquery(config: dict, data: list) -> None:
     except Exception as e:
         print(f"Error writing DataFrame to BigQuery Exception: {str(e)}")
         return
-    # Print a message indicating how many rows were loaded.
-    print(f"Processed {total_processed} rows.")
 
 
+
+def process_actuals(config, process_config):
+    print("Start processing actuals.")
+    client = bigquery.Client(location=config["location"])
+
+    dataset_id = config["dataset_id"]
+    table_name = config["table_name"]
+
+    query = f"SELECT * FROM ( SELECT *, ROW_NUMBER() OVER (PARTITION BY id ORDER BY updatedAt DESC) ROW_NUMBER FROM `{project_id}.{dataset_id}.{table_name}`) WHERE ROW_NUMBER = 1"
+    df = client.query(query).to_dataframe()
+    print(f"Total actuals fetched from `{project_id}.{dataset_id}.{table_name}`: {len(df)} rows.")
+    write_to_bigquery(process_config, df, "WRITE_TRUNCATE")
+    print(f"Added {len(df)} rows to {process_config["table_name"]}.")
+
+
+def load_processed_config(project_id) -> dict:
+    return {
+        "dataset_id": "Runn_Processed",  #os.environ.get("DATASET_ID"),
+        "gcp_project": project_id,
+        "table_name": "actuals", #os.environ.get("TABLE_NAME"),
+        "location": "europe-west2", #os.environ.get("TABLE_LOCATION"),
+    }
 def load_config(project_id, service, nextCursor, modifiedAfter) -> dict:
     url ="https://api.runn.io/actuals/?limit=500"
-
     # If modifiedAfter is provided, add it to the query URL
     if modifiedAfter:
         url += f"&modifiedAfter={modifiedAfter}"
@@ -167,7 +131,7 @@ def update_progress(progress_table, start_process_time, last_processed_time, las
         # If record does not exist, insert a new one
         query = f"""
             INSERT INTO `{progress_table}` (id, start_process_time, last_processed_cursor, last_processed_time, last_successful_write, completed)
-            VALUES ('{id}', '{start_time}', {last_processed_cursor_sql}, '{last_processed_time}', {last_successful_write_sql}, {completed})
+            VALUES ('{id}', {start_process_time_sql}, {last_processed_cursor_sql}, '{last_processed_time}', {last_successful_write_sql}, {completed})
         """
 
     query_job = client.query(query)
@@ -235,6 +199,7 @@ def main(data: dict, context):
                 last_successful_write = start_process_time
                 start_process_time = None
                 update_progress(progress_table, start_process_time, last_processed_time, nextCursor, progress_state_id, last_successful_write, True)
+                process_actuals(config, load_processed_config(project_id))
                 break
         else:
             raise Exception(

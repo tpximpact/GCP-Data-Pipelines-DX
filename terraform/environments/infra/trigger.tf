@@ -49,3 +49,20 @@ resource "google_cloud_scheduler_job" "two-hourly-15" {
     data       = base64encode("2hr15")
   }
 }
+
+resource "google_pubsub_topic" "cloud_function_trigger_hot_15" {
+  name         = "cloud-function-trigger-hot-15"
+  kms_key_name = google_kms_crypto_key.pub_sub_key.id
+}
+
+resource "google_cloud_scheduler_job" "trigger_15_minutes" {
+  name        = "every-15-minutes"
+  description = "Scheduled to trigger cloud function every 15 minutes"
+  schedule    = "*/15 * * * *"
+
+  pubsub_target {
+    # topic.id is the topic's full resource name.
+    topic_name = google_pubsub_topic.cloud_function_trigger_hot_15.id
+    data       = base64encode("15")
+  }
+}

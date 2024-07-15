@@ -156,7 +156,7 @@ resource "google_storage_bucket_object" "runn_actuals" {
 resource "google_cloudfunctions_function" "runn_actuals" {
   name                = "runn_actuals_pipe"
   runtime             = "python312" # of course changeable
-  available_memory_mb = 512
+  available_memory_mb = 1024
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
   source_archive_bucket = data.google_storage_bucket.function_bucket.name
@@ -167,7 +167,7 @@ resource "google_cloudfunctions_function" "runn_actuals" {
   https_trigger_security_level = "SECURE_ALWAYS"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = google_pubsub_topic.cloud_function_trigger_hot.id
+    resource   = google_pubsub_topic.cloud_function_trigger_hot_15.id
   }
 
   environment_variables = {
@@ -243,7 +243,7 @@ resource "google_storage_bucket_object" "runn_roles" {
   bucket = data.google_storage_bucket.function_bucket.name
 }
 
-resource "google_cloudfunctions_function" "runn_roless" {
+resource "google_cloudfunctions_function" "runn_roles" {
   name                = "runn_roles_pipe"
   runtime             = "python312" # of course changeable
   available_memory_mb = 512
