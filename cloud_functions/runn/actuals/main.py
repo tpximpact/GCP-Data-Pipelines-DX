@@ -8,6 +8,7 @@ from google.api_core.exceptions import Conflict, BadRequest
 from datetime import datetime, timezone, date
 from google.cloud import bigquery
 import re
+from google.cloud import bigquery_storage
 
 project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
 project_id = "tpx-dx-dashboards"
@@ -59,12 +60,14 @@ def write_runn_data_to_bigquery(config: dict, data: list) -> None:
 def process_actuals(config, process_config):
     print("Start processing actuals.")
     client = bigquery.Client(location=config["location"])
+    bqstorage_client = bigquery_storage.BigQueryReadClient()
 
     dataset_id = config["dataset_id"]
     table_name = config["table_name"]
 
-    query = f"SELECT * FROM ( SELECT *, ROW_NUMBER() OVER (PARTITION BY id ORDER BY updatedAt DESC) ROW_NUMBER FROM `{project_id}.{dataset_id}.{table_name}`) WHERE ROW_NUMBER = 1"
-    df = client.query(query).to_dataframe()
+    query = f"SELECT * FROM ( SELECT *, ROW_NUMBER() OVER (PARTITION BY id ORDER BY TIMESTAMP(updatedAt) DESC) ROW_NUMBER FROM `{project_id}.{dataset_id}.{table_name}`) WHERE ROW_NUMBER = 1"
+    print(f"Executing query:\n{query}")
+    df = client.query(query).to_dataframe(bqstorage_client=bqstorage_client)
     print(f"Total actuals fetched from `{project_id}.{dataset_id}.{table_name}`: {len(df)} rows.")
     write_to_bigquery(process_config, df, "WRITE_TRUNCATE")
     print(f"Added {len(df)} rows to {process_config["table_name"]}.")
