@@ -22,8 +22,7 @@ def state_update(id, next_page, updated_since, batch_start_time, reset=false):
 
     page_update = "page_number = page_number + 1"
 
-
-    if reset
+    if reset:
       batch_start_time = now
       page_update = "page_number = 0"
 
