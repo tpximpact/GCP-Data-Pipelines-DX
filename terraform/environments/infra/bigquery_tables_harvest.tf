@@ -17,6 +17,25 @@ resource "google_bigquery_table" "harvest_timesheets" {
   }
 }
 
+resource "google_bigquery_table" "harvest_timesheet_data_lake" {
+  dataset_id = google_bigquery_dataset.harvest_raw.dataset_id
+  table_id   = "timesheet_data_lake"
+
+  time_partitioning {
+    type = "DAY"
+  }
+
+  labels = {
+    env = var.env
+  }
+
+  deletion_protection = false
+
+  encryption_configuration {
+    kms_key_name = google_kms_crypto_key.bigquery_key.id
+  }
+}
+
 resource "google_bigquery_table" "harvest_users" {
   dataset_id = google_bigquery_dataset.harvest_raw.dataset_id
   table_id   = "users"
