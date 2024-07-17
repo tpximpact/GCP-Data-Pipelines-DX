@@ -128,6 +128,7 @@ resource "google_cloudfunctions_function" "runn_assignments" {
     "DATASET_ID"           = google_bigquery_dataset.runn_raw.dataset_id
     "TABLE_NAME"           = google_bigquery_table.runn_assignments.table_id
     "TABLE_LOCATION"       = google_bigquery_dataset.runn_raw.location
+    "STATE_TABLE_NAME"     = "${google_bigquery_dataset.state_tables.dataset_id}.${google_bigquery_table.process_state.table_id}"
     "GOOGLE_CLOUD_PROJECT" = var.project
 
   }
