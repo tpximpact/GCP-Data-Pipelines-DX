@@ -15,7 +15,7 @@ def state_get(id):
 
   return None, None, None
 
-def state_update(id, next_page, updated_since, batch_start_time, reset=false):
+def state_update(id, next_page, updated_since, batch_start_time, reset=False):
     client = bigquery.Client()
 
     now = int(round(datetime.now(timezone.utc).timestamp()))
