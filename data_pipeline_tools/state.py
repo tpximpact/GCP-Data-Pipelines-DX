@@ -15,48 +15,33 @@ def state_get(id):
 
   return None, None, None
 
-def state_update(id, next_page, updated_since, batch_start_time):
+def state_update(id, next_page, updated_since, batch_start_time, reset=false):
     client = bigquery.Client()
 
     now = int(round(datetime.now(timezone.utc).timestamp()))
 
     page_update = "page_number = page_number + 1"
 
-    if not next_page:
-        updated_since = batch_start_time
-        batch_start_time = now
-        page_update = "page_number = 0"
 
+    if reset
+      batch_start_time = now
+      page_update = "page_number = 0"
 
     if not batch_start_time:
         batch_start_time = now
 
     last_processed_time = now
 
-
-    if updated_since:
-        query = f"""
-            UPDATE `{progress_table}`
-            SET
-                next_page = '{next_page}',
-                batch_start_time = TIMESTAMP_SECONDS({batch_start_time}),
-                updated_since = TIMESTAMP_SECONDS({updated_since}),
-                last_processed_time = TIMESTAMP_SECONDS({last_processed_time}),
-                {page_update}
-            WHERE id = '{id}'
-        """
-    else :
-        query = f"""
-            UPDATE `{progress_table}`
-            SET
-                next_page = '{next_page}',
-                batch_start_time = TIMESTAMP_SECONDS({batch_start_time}),
-                last_processed_time = TIMESTAMP_SECONDS({last_processed_time}),
-                {page_update}
-            WHERE id = '{id}'
-        """
-
-    print(query)
+    query = f"""
+        UPDATE `{progress_table}`
+        SET
+            next_page = '{next_page}',
+            batch_start_time = TIMESTAMP_SECONDS({batch_start_time}),
+            updated_since = TIMESTAMP_SECONDS({updated_since}),
+            last_processed_time = TIMESTAMP_SECONDS({last_processed_time}),
+            {page_update}
+        WHERE id = '{id}'
+    """
 
     query_job = client.query(query)
     query_job.result()
