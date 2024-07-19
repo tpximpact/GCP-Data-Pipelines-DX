@@ -118,6 +118,15 @@ def get_harvest_pages(url: str, headers: dict):
         print(f"Error retrieving total pages: {e}")
         return None, None
 
+def handle_runn_rate_limits(response):
+    rate_limit_remaining = int(response.headers.get("x-ratelimit-remaining", 1))
+    rate_limit_reset = int(response.headers.get("x-ratelimit-reset", 0))
+    retry_after = int(response.headers.get("retry-after", 0))
+
+    if rate_limit_remaining == 0:
+        wait_time = max(rate_limit_reset, retry_after)
+        print(f"Rate limit reached. Waiting for {wait_time} seconds.")
+        time.sleep(wait_time)
 
 def unwrap_forecast_response(response: list) -> list:
     # This function maps a response to a json list
