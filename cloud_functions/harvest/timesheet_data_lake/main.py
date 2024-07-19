@@ -42,6 +42,9 @@ def main(data: dict, context):
 
     next_page, updated_since, batch_start_time = state_get(config["table_name"])
 
+    if not batch_start_time:
+        batch_start_time = now = int(round(datetime.now(timezone.utc).timestamp()))
+
     print("current state", next_page, updated_since, batch_start_time)
 
     if updated_since:
@@ -51,6 +54,8 @@ def main(data: dict, context):
         url = config["url"] + "?page="
 
     pages, entries = get_harvest_pages(url, config["headers"])
+
+    total_records_processed = 0
 
     print(f"Total pages: {pages}")
 
@@ -65,12 +70,25 @@ def main(data: dict, context):
         if df.empty:
            break
 
-        df = df.drop(columns=["started_time", "ended_time"])
         df["unique_id"] = df["id"].astype(str) + "-" + df["updated_at"].astype(str)
 
+        df = df.drop(columns=["invoice"])
+        df = find_and_flatten_columns(df)
+
+        drop_columns = ["started_time", "ended_time", "timer_started_at"]
+
+        if "external_reference" in df.columns:
+            drop_columns.append("external_reference")
+
+        df = df.drop(columns=drop_columns)
+
+        total_records_processed += len(df)
         write_to_bigquery(config, df, "WRITE_APPEND")
 
-    state_update(config["table_name"], "", batch_start_time, batch_start_time, true)
+
+    print("total_records_processed", total_records_processed)
+
+    state_update(config["table_name"], "", batch_start_time, batch_start_time, True)
 
 if __name__ == "__main__":
     main({}, None)

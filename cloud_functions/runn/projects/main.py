@@ -5,6 +5,9 @@ import requests
 from data_pipeline_tools.auth import runn_headers
 from data_pipeline_tools.util import write_to_bigquery
 
+from data_pipeline_tools.util import (
+    find_and_flatten_columns
+)
 
 project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
 project_id="tpx-dx-dashboards"
@@ -24,6 +27,14 @@ def load_config(project_id, service, nextCursor) -> dict:
         "service": service,
     }
 
+
+def get_harvest_id(references):
+  if references:
+    if references[0]["referenceName"] == "Harvest":
+      return str(references[0]["externalId"])
+
+  return ""
+
 def main(data: dict, context):
     projects=[]
     nextCursor=""
@@ -32,7 +43,7 @@ def main(data: dict, context):
     while True:
         config = load_config(project_id, service, nextCursor)
         response = requests.get(url=config["url"], headers=config["headers"])
-    
+
         if response.status_code == 200:
             data = response.json()
             # how many requests the client can make
@@ -46,7 +57,7 @@ def main(data: dict, context):
             print(f"Rate Limit remaining: {rate_limit_remaining}")
             print(f"Rate Limit time to reset: {rate_limit_reset}")
             print(f"Retry after: {retry_after}")
-           
+
             projects.extend(data.get("values", []))
             nextCursor = data.get("nextCursor")
             if not nextCursor:
@@ -58,9 +69,12 @@ def main(data: dict, context):
 
 
     projects_df = pd.DataFrame(projects)
-    write_to_bigquery(config, projects_df, "WRITE_TRUNCATE")
-    print("Done")
+    harvest_ids = projects_df["references"].apply(get_harvest_id)
 
+    projects_df["harvest_id"] = harvest_ids
+    projects_df = projects_df.drop(columns=["references", "customFields"])
+
+    write_to_bigquery(config, projects_df, "WRITE_TRUNCATE")
 
 if __name__ == "__main__":
     main({}, None)

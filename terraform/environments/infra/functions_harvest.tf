@@ -44,7 +44,7 @@ resource "google_cloudfunctions_function" "harvest_timesheet" {
   }
 }
 
-# ------------------------timesheets data lake----------------------
+# ------------------------timesheet data lake----------------------
 # Generates an archive of the source code compressed as a .zip file.
 data "archive_file" "harvest_timesheet_data_lake" {
   type        = "zip"
@@ -77,7 +77,7 @@ resource "google_cloudfunctions_function" "harvest_timesheet_data_lake" {
   https_trigger_security_level = "SECURE_ALWAYS"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = google_pubsub_topic.cloud_function_trigger_hot.id
+    resource   = google_pubsub_topic.cloud_function_trigger_tester.id
   }
 
   environment_variables = {

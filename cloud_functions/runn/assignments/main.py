@@ -36,12 +36,12 @@ def load_config(project_id, service) -> dict:
 
 def date_to_timestamp(date_string) -> float:
     parsed_date = datetime.fromisoformat(date_string[:-1])
-    return parsed_date.timestamp()
+    return int(round(parsed_date.timestamp()))
 
 def main(data: dict, context):
     service = "Data Pipeline - Assignments"
     config = load_config(project_id, service)
-    batch_size = 1
+    batch_size = 20
 
     next_cursor, updated_since, batch_start_time = state_get(config["table_name"])
 
@@ -54,7 +54,7 @@ def main(data: dict, context):
       if next_cursor:
         url = config["url"] + f"?cursor={next_cursor}"
       elif updated_since:
-        url = config["url"] + f"?modifiedAfter={updated_since}"
+        url = config["url"] + f"?limit=500&modifiedAfter={updated_since}"
       else:
         url = config["url"]
 
@@ -65,7 +65,7 @@ def main(data: dict, context):
 
       if response.status_code == 200:
         data = response.json()
-        nextCursor = data.get("nextCursor")
+        next_cursor = data.get("nextCursor")
 
         df = pd.DataFrame(data.get("values", []))
 
@@ -89,7 +89,7 @@ def main(data: dict, context):
       else:
         raise Exception(f"Failed to fetch assignments: {response.status_code}, {response.text}")
 
-      state_update(config["table_name"], next_cursor, max_updated_since, batch_start_time, next_cursor == "")
+    state_update(config["table_name"], next_cursor, max_updated_since, batch_start_time, next_cursor == "")
 
 
 def expand_rows(df):

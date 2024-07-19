@@ -66,3 +66,22 @@ resource "google_cloud_scheduler_job" "trigger_15_minutes" {
     data       = base64encode("15")
   }
 }
+
+
+resource "google_pubsub_topic" "cloud_function_trigger_tester" {
+  name         = "cloud-function-trigger-tester"
+  kms_key_name = google_kms_crypto_key.pub_sub_key.id
+
+}
+
+resource "google_cloud_scheduler_job" "test-trigger" {
+  name        = "test-trigger"
+  description = "Scheduled daily to trigger cloud function at 5:45"
+  schedule    = "*/45 5 * * *"
+
+  pubsub_target {
+    # topic.id is the topic's full resource name.
+    topic_name = google_pubsub_topic.cloud_function_trigger_tester.id
+    data       = base64encode("weekly")
+  }
+}
