@@ -5,16 +5,15 @@ description = ""
 authors = ["Your Name <you@example.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
-data_pipeline_tools = { git = "https://github.com/tpximpact/GCP-Data-Pipelines.git", branch = "main" }
-requests = "^2.28.2"
-google-cloud-core = "^2.3.2"
-google-cloud-bigquery = "^3.5.0"
-google-cloud-secret-manager = "^2.15.1"
-pyarrow = "^11.0.0"
-pandas-gbq = "^0.19.1"
+python = "^3.12"
+requests = "^2.32.3"
+google-cloud-core = "^2.4.1"
+google-cloud-bigquery = "^3.25.0"
+google-cloud-secret-manager = "^2.20.0"
+pyarrow = "^16.1.0"
+pandas-gbq = "^0.23.1"
+data_pipeline_tools = { git = "https://github.com/tpximpact/GCP-Data-Pipelines-DX.git", branch = "main" }
 pyforecast = { git = 'https://github.com/urquha/py_forecast', branch = "master" }
-holidays = "^0.21.13"
 
 [tool.poetry.dev-dependencies]
 
