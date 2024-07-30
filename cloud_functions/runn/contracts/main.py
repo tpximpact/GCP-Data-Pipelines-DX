@@ -4,9 +4,8 @@ import requests
 
 from data_pipeline_tools.auth import runn_headers
 from data_pipeline_tools.util import (
-    find_and_flatten_columns,
-    handle_runn_rate_limits,
-    write_to_bigquery
+  handle_runn_rate_limits,
+  write_to_bigquery
 )
 
 project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
@@ -14,9 +13,10 @@ project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
 if not project_id:
     project_id = "tpx-dx-dashboards"
 
+
 def load_config(project_id, service) -> dict:
     return {
-        "url": "https://api.runn.io/projects",
+        "url": "https://api.runn.io/contracts?limit=200",
         "headers": runn_headers(project_id, service),
         "dataset_id": os.environ.get("DATASET_ID"),
         "gcp_project": project_id,
@@ -25,27 +25,20 @@ def load_config(project_id, service) -> dict:
         "service": service,
     }
 
-
-def get_harvest_id(references):
-    if references:
-        if references[0]["referenceName"] == "Harvest":
-            return str(references[0]["externalId"])
-
-    return ""
-
 def main(data: dict, context):
-    service = "Data Pipeline - Runn Projects"
+    service = "Data Pipeline - Runn Contracts"
     config = load_config(project_id, service)
-    projects = []
+    people = []
     next_cursor = ""
 
     while True:
-        url = config["url"] + "?cursor=" + next_cursor if next_cursor else config["url"]
+        url = config["url"] + "&cursor=" + next_cursor if next_cursor else config["url"]
         response = requests.get(url=url, headers=config["headers"])
 
         if response.status_code == 200:
             data = response.json()
-            projects.extend(data.get("values", []))
+
+            people.extend(data.get("values", []))
             next_cursor = data.get("nextCursor")
 
             if not next_cursor:
@@ -53,16 +46,19 @@ def main(data: dict, context):
         else:
             raise Exception(f"Failed to fetch people: {response.status_code}, {response.text}")
 
-        projects_df = pd.DataFrame(projects)
-        harvest_ids = projects_df["references"].apply(get_harvest_id)
+        people_df = pd.DataFrame(people)
+        people_df["day_monday"] = people_df.rosteredDays.apply(lambda x: x["monday"])
+        people_df["day_tuesday"] = people_df.rosteredDays.apply(lambda x: x["tuesday"])
+        people_df["day_wednesday"] = people_df.rosteredDays.apply(lambda x: x["wednesday"])
+        people_df["day_thursday"] = people_df.rosteredDays.apply(lambda x: x["thursday"])
+        people_df["day_friday"] = people_df.rosteredDays.apply(lambda x: x["friday"])
+        people_df = people_df.drop(columns=["rosteredDays"])
 
-        projects_df["harvest_id"] = harvest_ids
-        projects_df = projects_df.drop(columns=["references", "customFields", "tags"])
-
-        write_to_bigquery(config, projects_df, "WRITE_TRUNCATE")
+        write_to_bigquery(config, people_df, "WRITE_TRUNCATE")
         handle_runn_rate_limits(response)
 
-        print(f"Total number of projects fetched: {len(projects)}")
+        print(f"Total number of contracts fetched: {len(people_df)}")
+
 
 if __name__ == "__main__":
     main({}, None)

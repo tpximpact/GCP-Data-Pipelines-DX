@@ -3,79 +3,66 @@ import pandas as pd
 import requests
 
 from data_pipeline_tools.auth import runn_headers
-from data_pipeline_tools.util import write_to_bigquery
-
+from data_pipeline_tools.util import (
+  handle_runn_rate_limits,
+  write_to_bigquery
+)
 
 project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
-project_id="tpx-dx-dashboards"
-service = "Data Pipeline - Runn People"
-if not project_id:
-    project_id = input("Enter GCP project ID: ")
 
-def load_config(project_id, service, nextCursor) -> dict:
+if not project_id:
+    project_id = "tpx-dx-dashboards"
+
+
+def load_config(project_id, service) -> dict:
     return {
-        "url": "https://api.runn.io/people/?cursor="+nextCursor,
+        "url": "https://api.runn.io/people",
         "headers": runn_headers(project_id, service),
-        "dataset_id": "Runn_Raw",  #os.environ.get("DATASET_ID"),
+        "dataset_id": os.environ.get("DATASET_ID"),
         "gcp_project": project_id,
-        "table_name": "people", #os.environ.get("TABLE_NAME"),
-        "location": "europe-west2", #os.environ.get("TABLE_LOCATION"),
+        "table_name": os.environ.get("TABLE_NAME"),
+        "location": os.environ.get("TABLE_LOCATION"),
         "service": service,
     }
 
 def get_harvest_id(references):
-  if references:
-    if references[0]["referenceName"] == "Harvest":
-      return str(references[0]["externalId"])
+    if references:
+        if references[0]["referenceName"] == "Harvest":
+            return str(references[0]["externalId"])
 
-  return ""
+    return ""
 
 def main(data: dict, context):
-    people=[]
-    nextCursor=""
-    config = load_config(project_id, service, nextCursor)
+    service = "Data Pipeline - Runn People"
+    config = load_config(project_id, service)
+    people = []
+    next_cursor = ""
 
     while True:
-        config = load_config(project_id, service, nextCursor)
-        response = requests.get(url=config["url"], headers=config["headers"])
+        url = config["url"] + "?cursor=" + next_cursor if next_cursor else config["url"]
+        response = requests.get(url=url, headers=config["headers"])
 
         if response.status_code == 200:
             data = response.json()
-            # how many requests the client can make
-            rate_limit = response.headers.get("x-ratelimit-limit")
-            # how many requests remain to the client in the time window
-            rate_limit_remaining = response.headers.get("x-ratelimit-remaining")
-            # how many seconds must pass before the rate limit resets
-            rate_limit_reset = response.headers.get("x-ratelimit-reset")
-            retry_after = response.headers.get("retry-after")
-            print(f"Rate Limit can make: {rate_limit}")
-            print(f"Rate Limit remaining: {rate_limit_remaining}")
-            print(f"Rate Limit time to reset: {rate_limit_reset}")
-            print(f"Retry after: {retry_after}")
 
             people.extend(data.get("values", []))
-            nextCursor = data.get("nextCursor")
-            if not nextCursor:
+            next_cursor = data.get("nextCursor")
+
+            if not next_cursor:
                 break
         else:
             raise Exception(f"Failed to fetch people: {response.status_code}, {response.text}")
 
-    # print(people)
-    print(f"Total number of people fetched: {len(people)}")
+        people_df = pd.DataFrame(people)
 
-    # active_people = [person for person in people if not person.get('isArchived', False)]
+        harvest_ids = people_df["references"].apply(get_harvest_id)
+        people_df["harvest_id"] = harvest_ids
+        people_df = people_df.drop(columns=["references", "tags"])
 
-    # print(f"Total number of active people fetched: {len(active_people)}")
+        write_to_bigquery(config, people_df, "WRITE_TRUNCATE")
+        handle_runn_rate_limits(response)
 
-    people_df = pd.DataFrame(people)
-
-    harvest_ids = people_df["references"].apply(get_harvest_id)
-    people_df["harvest_id"] = harvest_ids
-    people_df = people_df.drop(columns=["references", "tags"])
-
-    write_to_bigquery(config, people_df, "WRITE_TRUNCATE")
-    print(config["dataset_id"])
-    print("Done")
+        print(f"Total number of people fetched: {len(people_df)}")
 
 
 if __name__ == "__main__":

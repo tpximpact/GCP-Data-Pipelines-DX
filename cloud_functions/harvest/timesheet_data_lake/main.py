@@ -53,6 +53,10 @@ def main(data: dict, context):
     else:
         url = config["url"] + "?page="
 
+    import_date = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    print("url", url)
+
     pages, entries = get_harvest_pages(url, config["headers"])
 
     total_records_processed = 0
@@ -71,6 +75,7 @@ def main(data: dict, context):
            break
 
         df["unique_id"] = df["id"].astype(str) + "-" + df["updated_at"].astype(str)
+        df["import_date"] = import_date
 
         df = df.drop(columns=["invoice"])
         df = find_and_flatten_columns(df)
@@ -84,7 +89,6 @@ def main(data: dict, context):
 
         total_records_processed += len(df)
         write_to_bigquery(config, df, "WRITE_APPEND")
-
 
     print("total_records_processed", total_records_processed)
 

@@ -41,7 +41,7 @@ These cloud functions are part of the HR Data Integration and Reporting system a
 - Poetry
 - Access to GCP
 
-### Installation
+### Installation (local machine)
 
 1. Clone this repository:
 
@@ -65,6 +65,46 @@ These cloud functions are part of the HR Data Integration and Reporting system a
    `terraform init`
 
 6. Apply the Terraform configuration:
+
+   `terraform apply`
+
+### Installation (Docker)
+
+1. Clone this repository:
+
+   `git clone git@github.com:tpximpact/GCP-Data-Pipelines-DX.git`
+
+2. Build docker container:
+   
+   `docker-compose up`
+3. Connect to the container:
+
+   `docker-compose exec data-pipelines bin/bash`
+
+4. Login with the GCP clic
+
+   `gcloud auth application-default login`
+   `gcloud auth application-default set-quota-project tpx-dx-dashboards
+   `gcloud config set project tpx-dx-dashboards`
+
+5. Navigate to the project directory:
+
+   `cd /cloud-functions/{api_name}/{endpoint_name}`
+
+6. Install dependencies using Poetry:
+
+   `poetry install`
+
+7. Export the dependencies to a `requirements.txt` file
+   (This needs to be done to deploy to Google cloud):
+
+   `poetry export --format=requirements.txt --output=requirements.txt --without-hashes`
+
+8. Set up Terraform:
+
+   `terraform init`
+
+9. Apply the Terraform configuration:
 
    `terraform apply`
 

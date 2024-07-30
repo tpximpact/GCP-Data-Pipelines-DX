@@ -1,0 +1,11 @@
+version: "3"
+
+services:
+  data-pipelines:
+    build: ./
+    volumes:
+      - ./cloud_functions:/cloud-functions
+      - ./data_pipeline_tools:/data-pipeline-tools
+      - ./terraform:/terraform
+    stdin_open: true
+    tty: true

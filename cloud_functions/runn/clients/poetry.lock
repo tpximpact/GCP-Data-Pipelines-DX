@@ -274,7 +274,7 @@ pandas = "*"
 type = "git"
 url = "https://github.com/tpximpact/GCP-Data-Pipelines-DX.git"
 reference = "main"
-resolved_reference = "b397be560fa36970884977d0f2ba025bc60476da"
+resolved_reference = "776cbe3bc4b0dcb10e776afc0379a1137de43c36"
 
 [[package]]
 name = "db-dtypes"

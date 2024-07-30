@@ -27,7 +27,7 @@ if not project_id:
 
 def load_config(project_id, service) -> dict:
     return {
-        "url": "https://api.runn.io/assignments",
+        "url": "https://api.runn.io/time-offs/holidays",
         "headers": runn_headers(project_id, service),
         "dataset_id": os.environ.get("DATASET_ID"),
         "gcp_project": project_id,
@@ -44,7 +44,7 @@ def date_to_timestamp(date_string) -> float:
 
 
 def main(data: dict, context):
-    service = "Data Pipeline - Runn assignments"
+    service = "Data Pipeline - Runn public holidays"
     config = load_config(project_id, service)
     batch_size = 20
 
@@ -52,18 +52,17 @@ def main(data: dict, context):
 
     max_updated_since = updated_since if updated_since else 0
 
-    import_date = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
-
     if updated_since:
         updated_since = datetime.fromtimestamp(updated_since, timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+
 
     for start_page in range(0, batch_size):
         if next_cursor:
             url = config["url"] + f"?cursor={next_cursor}"
         elif updated_since:
-            url = config["url"] + f"?limit=500&modifiedAfter={updated_since}"
+            url = config["url"] + f"?limit=200&modifiedAfter={updated_since}"
         else:
-            url = config["url"]
+            url = config["url"] + f"?limit=200"
 
         print("url", url)
 
@@ -79,13 +78,12 @@ def main(data: dict, context):
                 next_cursor = ""
                 break
 
-            max_updated_since_new = date_to_timestamp(df["updatedAt"].max()) + 1
+            max_updated_since_new = date_to_timestamp(df["updatedAt"].max())
             max_updated_since = max_updated_since_new if max_updated_since_new > max_updated_since else max_updated_since
 
             df = expand_rows(df)
 
             df["unique_id"] = df["id"].astype(str) + "-" + df["startDate"].astype(str) + "-" + df["updatedAt"].astype(str)
-            df["import_date"] = import_date
 
             write_to_bigquery(config, df, "WRITE_APPEND")
 
@@ -96,7 +94,7 @@ def main(data: dict, context):
                 handle_runn_rate_limits(response)
 
         else:
-            raise Exception(f"Failed to fetch assignments: {response.status_code}, {response.text}")
+            raise Exception(f"Failed to fetch holidays: {response.status_code}, {response.text}")
 
     state_update(config["table_name"], next_cursor, max_updated_since, batch_start_time, next_cursor == "")
 
@@ -125,7 +123,6 @@ def expand_rows(df):
 def get_dates(start_date: datetime, end_date: datetime) -> list:
     date = copy.copy(start_date)
     dates_list = []
-
     while date <= end_date:
         if date.weekday() < 5:
             dates_list.append(date)

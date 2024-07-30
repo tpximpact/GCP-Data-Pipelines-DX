@@ -1,3 +1,49 @@
+# --------------------------runn contracts--------------------------------\
+# Generates an archive of the source code compressed as a .zip file.
+data "archive_file" "runn_contracts" {
+  type        = "zip"
+  source_dir  = "../../../cloud_functions/runn/contracts"
+  output_path = "/tmp/runn_contracts.zip"
+}
+
+# Add source code zip to the Cloud Function's bucket
+resource "google_storage_bucket_object" "runn_contracts" {
+  source       = data.archive_file.runn_contracts.output_path
+  content_type = "application/zip"
+
+  # Append to the MD5 checksum of the files content
+  # to force the zip to be updated as soon as a change occurs
+  name   = "cloud_function-${data.archive_file.runn_contracts.output_md5}.zip"
+  bucket = data.google_storage_bucket.function_bucket.name
+}
+
+resource "google_cloudfunctions_function" "runn_contracts" {
+  name                = "runn_contracts_pipe"
+  runtime             = "python312" # of course changeable
+  available_memory_mb = 512
+  timeout             = 540
+  # Get the source code of the cloud function as a Zip compression
+  source_archive_bucket = data.google_storage_bucket.function_bucket.name
+  source_archive_object = google_storage_bucket_object.runn_contracts.name
+
+  # Must match the function name in the cloud function `main.py` source code
+  entry_point                  = "main"
+  https_trigger_security_level = "SECURE_ALWAYS"
+  event_trigger {
+    event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
+    resource   = google_pubsub_topic.cloud_function_trigger_tester.id
+  }
+
+  environment_variables = {
+    "DATASET_ID"           = google_bigquery_dataset.runn_raw.dataset_id
+    "TABLE_NAME"           = google_bigquery_table.runn_contracts.table_id
+    "TABLE_LOCATION"       = google_bigquery_dataset.runn_raw.location
+    "STATE_TABLE_NAME"     = "${google_bigquery_dataset.state_tables.dataset_id}.${google_bigquery_table.process_state.table_id}"
+    "GOOGLE_CLOUD_PROJECT" = var.project
+
+  }
+}
+
 # --------------------------runn people--------------------------------\
 # Generates an archive of the source code compressed as a .zip file.
 data "archive_file" "runn_people" {
@@ -133,51 +179,6 @@ resource "google_cloudfunctions_function" "runn_assignments" {
   }
 }
 
-# --------------------------actuals--------------------------------\
-# Generates an archive of the source code compressed as a .zip file.
-data "archive_file" "runn_actuals" {
-  type        = "zip"
-  source_dir  = "../../../cloud_functions/runn/actuals"
-  output_path = "/tmp/runn_actuals.zip"
-}
-
-# Add source code zip to the Cloud Function's bucket
-resource "google_storage_bucket_object" "runn_actuals" {
-  source       = data.archive_file.runn_actuals.output_path
-  content_type = "application/zip"
-
-  # Append to the MD5 checksum of the files's content
-  # to force the zip to be updated as soon as a change occurs
-  name   = "cloud_function-${data.archive_file.runn_actuals.output_md5}.zip"
-  bucket = data.google_storage_bucket.function_bucket.name
-}
-
-resource "google_cloudfunctions_function" "runn_actuals" {
-  name                = "runn_actuals_pipe"
-  runtime             = "python312" # of course changeable
-  available_memory_mb = 1024
-  timeout             = 540
-  # Get the source code of the cloud function as a Zip compression
-  source_archive_bucket = data.google_storage_bucket.function_bucket.name
-  source_archive_object = google_storage_bucket_object.runn_actuals.name
-
-  # Must match the function name in the cloud function `main.py` source code
-  entry_point                  = "main"
-  https_trigger_security_level = "SECURE_ALWAYS"
-  event_trigger {
-    event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = google_pubsub_topic.cloud_function_trigger_hot_15.id
-  }
-
-  environment_variables = {
-    "DATASET_ID"           = google_bigquery_dataset.runn_raw.dataset_id
-    "TABLE_NAME"           = google_bigquery_table.runn_actuals.table_id
-    "TABLE_LOCATION"       = google_bigquery_dataset.runn_raw.location
-    "GOOGLE_CLOUD_PROJECT" = var.project
-
-  }
-}
-
 # -------------------------- clients --------------------------------\
 # Generates an archive of the source code compressed as a .zip file.
 data "archive_file" "runn_clients" {
@@ -217,6 +218,53 @@ resource "google_cloudfunctions_function" "runn_clients" {
   environment_variables = {
     "DATASET_ID"           = google_bigquery_dataset.runn_raw.dataset_id
     "TABLE_NAME"           = google_bigquery_table.runn_clients.table_id
+    "TABLE_LOCATION"       = google_bigquery_dataset.runn_raw.location
+    "STATE_TABLE_NAME"     = "${google_bigquery_dataset.state_tables.dataset_id}.${google_bigquery_table.process_state.table_id}"
+    "GOOGLE_CLOUD_PROJECT" = var.project
+
+  }
+}
+
+# --------------------------public_holidays--------------------------------\
+# Generates an archive of the source code compressed as a .zip file.
+data "archive_file" "runn_public_holidays" {
+  type        = "zip"
+  source_dir  = "../../../cloud_functions/runn/public_holidays"
+  output_path = "/tmp/public_holidays.zip"
+}
+
+# Add source code zip to the Cloud Function's bucket
+resource "google_storage_bucket_object" "runn_public_holidays" {
+  source       = data.archive_file.runn_public_holidays.output_path
+  content_type = "application/zip"
+
+  # Append to the MD5 checksum of the files content
+  # to force the zip to be updated as soon as a change occurs
+  name   = "cloud_function-${data.archive_file.runn_public_holidays.output_md5}.zip"
+  bucket = data.google_storage_bucket.function_bucket.name
+}
+
+resource "google_cloudfunctions_function" "runn_public_holidays" {
+  name                = "runn_public_holidays_pipe"
+  runtime             = "python312" # of course changeable
+  available_memory_mb = 512
+  timeout             = 540
+  # Get the source code of the cloud function as a Zip compression
+  source_archive_bucket = data.google_storage_bucket.function_bucket.name
+  source_archive_object = google_storage_bucket_object.runn_public_holidays.name
+
+  # Must match the function name in the cloud function `main.py` source code
+  entry_point                  = "main"
+  https_trigger_security_level = "SECURE_ALWAYS"
+
+  event_trigger {
+    event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
+    resource   = google_pubsub_topic.cloud_function_trigger_hot_15.id
+  }
+
+  environment_variables = {
+    "DATASET_ID"           = google_bigquery_dataset.runn_raw.dataset_id
+    "TABLE_NAME"           = google_bigquery_table.runn_public_holidays.table_id
     "TABLE_LOCATION"       = google_bigquery_dataset.runn_raw.location
     "STATE_TABLE_NAME"     = "${google_bigquery_dataset.state_tables.dataset_id}.${google_bigquery_table.process_state.table_id}"
     "GOOGLE_CLOUD_PROJECT" = var.project
@@ -269,6 +317,53 @@ resource "google_cloudfunctions_function" "runn_teams" {
   }
 }
 
+# --------------------------rate_cards--------------------------------\
+# Generates an archive of the source code compressed as a .zip file.
+data "archive_file" "runn_rate_cards" {
+  type        = "zip"
+  source_dir  = "../../../cloud_functions/runn/rate_cards"
+  output_path = "/tmp/rate_cards.zip"
+}
+
+# Add source code zip to the Cloud Function's bucket
+resource "google_storage_bucket_object" "rate_cards" {
+  source       = data.archive_file.runn_rate_cards.output_path
+  content_type = "application/zip"
+
+  # Append to the MD5 checksum of the files content
+  # to force the zip to be updated as soon as a change occurs
+  name   = "cloud_function-${data.archive_file.runn_rate_cards.output_md5}.zip"
+  bucket = data.google_storage_bucket.function_bucket.name
+}
+
+resource "google_cloudfunctions_function" "rate_cards" {
+  name                = "runn_rate_cards_pipe"
+  runtime             = "python312" # of course changeable
+  available_memory_mb = 512
+  timeout             = 540
+  # Get the source code of the cloud function as a Zip compression
+  source_archive_bucket = data.google_storage_bucket.function_bucket.name
+  source_archive_object = google_storage_bucket_object.rate_cards.name
+
+  # Must match the function name in the cloud function `main.py` source code
+  entry_point                  = "main"
+  https_trigger_security_level = "SECURE_ALWAYS"
+
+  event_trigger {
+    event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
+    resource   = google_pubsub_topic.cloud_function_trigger_cold.id
+  }
+
+  environment_variables = {
+    "DATASET_ID"           = google_bigquery_dataset.runn_raw.dataset_id
+    "TABLE_NAME"           = google_bigquery_table.runn_rate_cards.table_id
+    "PROJECTS_TABLE_NAME"  = google_bigquery_table.runn_rate_project_rates.table_id
+    "TABLE_LOCATION"       = google_bigquery_dataset.runn_raw.location
+    "GOOGLE_CLOUD_PROJECT" = var.project
+
+  }
+}
+
 # --------------------------roles--------------------------------\
 # Generates an archive of the source code compressed as a .zip file.
 data "archive_file" "runn_roles" {
@@ -313,3 +408,4 @@ resource "google_cloudfunctions_function" "runn_roles" {
 
   }
 }
+

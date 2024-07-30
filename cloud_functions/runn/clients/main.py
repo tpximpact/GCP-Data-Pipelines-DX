@@ -1,12 +1,12 @@
 import os
 import pandas as pd
 import requests
-import time
-import copy
-from datetime import datetime, timezone, date, timedelta
 
 from data_pipeline_tools.auth import runn_headers
-from data_pipeline_tools.util import write_to_bigquery
+from data_pipeline_tools.util import (
+  handle_runn_rate_limits,
+  write_to_bigquery
+)
 from data_pipeline_tools.state import (
     state_get,
     state_update
@@ -16,9 +16,6 @@ project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
 
 if not project_id:
     project_id = "tpx-dx-dashboards"
-
-if not project_id:
-    project_id = input("Enter GCP project ID: ")
 
 
 def load_config(project_id, service) -> dict:
@@ -35,39 +32,42 @@ def load_config(project_id, service) -> dict:
 
 
 def harvest_id_get(references: list):
-  harvest_id =""
+    harvest_id =""
 
-  for row in references:
-    if row["referenceName"] == "Harvest":
-      harvest_id = row["externalId"]
+    for row in references:
+        if row["referenceName"] == "Harvest":
+            harvest_id = row["externalId"]
 
-  return harvest_id
+    return harvest_id
 
 
 def page_get(url, headers):
-  print("getting page", url)
-  response = requests.get(url=url, headers=headers)
+    print("getting page", url)
 
-  if response.status_code == 200:
-    data = response.json()
-    next_cursor = data.get("nextCursor")
+    response = requests.get(url=url, headers=headers)
 
-    df = pd.DataFrame(data.get("values", []))
+    if response.status_code == 200:
+        data = response.json()
+        next_cursor = data.get("nextCursor")
 
-    if df.empty:
-      return df, ""
+        df = pd.DataFrame(data.get("values", []))
 
-    df["harvest_id"] = df["references"].apply(harvest_id_get)
-    df = df.drop(columns=["references"])
+        if df.empty:
+            return df, ""
 
-    return df, next_cursor
+        df["harvest_id"] = df["references"].apply(harvest_id_get)
+        df = df.drop(columns=["references"])
 
-  else:
-    raise Exception(f"Failed to fetch assignments: {response.status_code}, {response.text}")
+        handle_runn_rate_limits(response)
+
+        return df, next_cursor
+
+    else:
+        raise Exception(f"Failed to fetch assignments: {response.status_code}, {response.text}")
 
 
 def main(data: dict, context):
-    service = "Data Pipeline - Clients"
+    service = "Data Pipeline - Runn clients"
     config = load_config(project_id, service)
 
     next_cursor = ""
@@ -75,24 +75,16 @@ def main(data: dict, context):
     df = pd.DataFrame([])
 
     while has_more:
-      if next_cursor:
-        url = config["url"] + f"?cursor={next_cursor}"
-      else:
-         url = config["url"]
+        url = config["url"] + "?cursor=" + next_cursor if next_cursor else config["url"]
 
+        page_df, next_cursor = page_get(url, headers=config["headers"])
+        df = pd.concat([df, page_df])
 
-      page_df, next_cursor = page_get(url, headers=config["headers"])
-
-      df = pd.concat([df, page_df])
-
-      if not next_cursor:
-        has_more = False
-        break
-
-    print("DF SIZE final", len(df))
+        if not next_cursor:
+            has_more = False
+            break
 
     write_to_bigquery(config, df, "WRITE_TRUNCATE")
-
 
 if __name__ == "__main__":
     main({}, None)
