@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "deals"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+setuptools = "^72.1.0"
+hubspot-api-client = "^9.0.0"
+google-cloud-core = "^2.4.1"
+google-cloud-bigquery = "^3.25.0"
+google-cloud-secret-manager = "^2.20.2"
+pandas = "^2.2.2"
+data_pipeline_tools = { git = "https://github.com/tpximpact/GCP-Data-Pipelines-DX.git", branch = "main" }
+pandas-gbq = "^0.23.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
