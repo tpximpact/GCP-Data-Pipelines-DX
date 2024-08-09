@@ -19,9 +19,7 @@ def fetch_all_deals(api_client):
       try:
         # Fetch a page of deals
         response = api_client.crm.deals.basic_api.get_page(limit=100, after=after)
-        for deal in response.results:
-          deal_dict = deal.to_dict()
-          all_deals.append(deal_dict)
+        all_deals.extend([x.to_dict() for x in response.results])
 
         # Check if there is a next page
         if response.paging and response.paging.next:
@@ -65,7 +63,6 @@ def main(data: dict, context: dict = None):
 
   except ApiException as e:
     print("Exception when calling basic_api->get_page: %s\n" % e)
-
 
 
 if __name__ == "__main__":
