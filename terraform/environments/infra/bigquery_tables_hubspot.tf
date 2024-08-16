@@ -17,9 +17,9 @@ resource "google_bigquery_table" "hubspot_deals" {
   }
 }
 
-resource "google_bigquery_table" "hubspot_sales_pipeline" {
+resource "google_bigquery_table" "hubspot_deals_stages" {
   dataset_id = google_bigquery_dataset.hubspot_raw.dataset_id
-  table_id   = "hubspot_sales_pipeline"
+  table_id   = "hubspot_deals_stages"
 
   time_partitioning {
     type = "DAY"

@@ -45,33 +45,33 @@ resource "google_cloudfunctions_function" "hubspot_deals" {
 }
 
 
-# --------------------------hubspot sales pipeline--------------------------------\
+# --------------------------hubspot deals stages--------------------------------\
 # Generates an archive of the source code compressed as a .zip file.
-data "archive_file" "hubspot_sales_pipeline" {
+data "archive_file" "hubspot_deals_stages" {
   type        = "zip"
-  source_dir  = "../../../cloud_functions/hubspot/pipeline"
-  output_path = "/tmp/hubspot_sales_pipeline.zip"
+  source_dir  = "../../../cloud_functions/hubspot/deals_stages"
+  output_path = "/tmp/hubspot_deals_stages.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
-resource "google_storage_bucket_object" "hubspot_sales_pipeline" {
-  source       = data.archive_file.hubspot_sales_pipeline.output_path
+resource "google_storage_bucket_object" "hubspot_deals_stages" {
+  source       = data.archive_file.hubspot_deals_stages.output_path
   content_type = "application/zip"
 
   # Append to the MD5 checksum of the files content
   # to force the zip to be updated as soon as a change occurs
-  name   = "cloud_function-${data.archive_file.hubspot_sales_pipeline.output_md5}.zip"
+  name   = "cloud_function-${data.archive_file.hubspot_deals_stages.output_md5}.zip"
   bucket = data.google_storage_bucket.function_bucket.name
 }
 
-resource "google_cloudfunctions_function" "hubspot_sales_pipeline" {
-  name                = "hubspot_sales_pipe"
+resource "google_cloudfunctions_function" "hubspot_deals_stages_pipeline" {
+  name                = "hubspot_deals_stages_pipe"
   runtime             = "python312" # of course changeable
   available_memory_mb = 512
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
   source_archive_bucket = data.google_storage_bucket.function_bucket.name
-  source_archive_object = google_storage_bucket_object.hubspot_sales_pipeline.name
+  source_archive_object = google_storage_bucket_object.hubspot_deals_stages.name
 
   # Must match the function name in the cloud function `main.py` source code
   entry_point                  = "main"
@@ -83,7 +83,7 @@ resource "google_cloudfunctions_function" "hubspot_sales_pipeline" {
 
   environment_variables = {
     "DATASET_ID"           = google_bigquery_dataset.hubspot_raw.dataset_id
-    "TABLE_NAME"           = google_bigquery_table.hubspot_sales_pipeline.table_id
+    "TABLE_NAME"           = google_bigquery_table.hubspot_deals_stages.table_id
     "TABLE_LOCATION"       = google_bigquery_dataset.hubspot_raw.location
     "STATE_TABLE_NAME"     = "${google_bigquery_dataset.state_tables.dataset_id}.${google_bigquery_table.process_state.table_id}"
     "GOOGLE_CLOUD_PROJECT" = var.project
