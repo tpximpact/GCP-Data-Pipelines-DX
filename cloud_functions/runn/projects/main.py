@@ -33,6 +33,13 @@ def get_harvest_id(references):
 
     return ""
 
+def get_first_project_tag(tags):
+    if tags:
+        if tags[0]["name"] in ['Project', 'Retainer']:
+            return str(tags[0]["name"])
+
+    return "No tag"
+
 def main(data: dict, context):
     service = "Data Pipeline - Runn Projects"
     config = load_config(project_id, service)
@@ -55,8 +62,10 @@ def main(data: dict, context):
 
         projects_df = pd.DataFrame(projects)
         harvest_ids = projects_df["references"].apply(get_harvest_id)
+        project_type = projects_df["tags"].apply(get_first_project_tag)
 
         projects_df["harvest_id"] = harvest_ids
+        projects_df["project_type"] = project_type
         projects_df = projects_df.drop(columns=["references", "customFields", "tags"])
 
         write_to_bigquery(config, projects_df, "WRITE_TRUNCATE")
