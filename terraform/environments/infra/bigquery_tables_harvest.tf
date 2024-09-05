@@ -21,9 +21,9 @@ resource "google_bigquery_table" "harvest_timesheet_data_lake" {
   dataset_id = google_bigquery_dataset.harvest_raw.dataset_id
   table_id   = "timesheet_data_lake"
 
-  time_partitioning {
-    type = "DAY"
-  }
+#  time_partitioning {
+#    type = "DAY"
+#  }
 
   labels = {
     env = var.env

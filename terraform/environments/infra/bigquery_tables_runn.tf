@@ -21,9 +21,9 @@ resource "google_bigquery_table" "runn_people" {
   dataset_id = google_bigquery_dataset.runn_raw.dataset_id
   table_id   = "people"
 
-  time_partitioning {
-    type = "DAY"
-  }
+#  time_partitioning {
+#    type = "DAY"
+#  }
 
   labels = {
     env = var.env
@@ -62,6 +62,133 @@ resource "google_bigquery_table" "runn_assignments" {
   time_partitioning {
     type = "DAY"
   }
+
+  labels = {
+    env = var.env
+  }
+
+  deletion_protection = false
+
+  encryption_configuration {
+    kms_key_name = google_kms_crypto_key.bigquery_key.id
+  }
+}
+
+resource "google_bigquery_table" "runn_assignments_new" {
+  dataset_id = google_bigquery_dataset.runn_raw.dataset_id
+  table_id   = "assignments_new"
+
+  time_partitioning {
+    type          = "MONTH"
+    field         = "startDate"
+  }
+
+  schema = <<EOF
+[
+  {
+    "name": "uniqueId",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "id",
+    "type": "INT64",
+    "mode": "NULLABLE",
+    "description": "Item ID"
+  },
+  {
+    "name": "personId",
+    "type": "INT64",
+    "mode": "NULLABLE",
+    "description": "Person ID"
+  },
+  {
+    "name": "startDate",
+    "type": "TIMESTAMP",
+    "description": "Assignment start date"
+  },
+  {
+    "name": "endDate",
+    "type": "TIMESTAMP",
+    "description": "Assignment end date"
+  },
+  {
+    "name": "projectId",
+    "type": "INT64",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "numberDays",
+    "type": "INT64",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "minutesPerDay",
+    "type": "INT64",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "roleId",
+    "type": "INT64",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "isActive",
+    "type": "BOOLEAN",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "note",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "isBillable",
+    "type": "BOOLEAN",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "phaseId",
+    "type": "INT64",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "isNonWorkingDay",
+    "type": "BOOLEAN",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "isTemplate",
+    "type": "BOOLEAN",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "isPlaceholder",
+    "type": "BOOLEAN",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "workstreamId",
+    "type": "INT64",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "createdAt",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "updatedAt",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "importDate",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE"
+  }
+]
+EOF
 
   labels = {
     env = var.env

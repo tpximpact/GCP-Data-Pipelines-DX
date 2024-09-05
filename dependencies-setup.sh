@@ -14,6 +14,8 @@ DIRECTORIES=(
 "cloud_functions/harvest/users"
 "cloud_functions/helpers/months_columns"
 "cloud_functions/hibob/time_off"
+"cloud_functions/hubspot/deals"
+"cloud_functions/hubspot/deals_stages"
 "cloud_functions/pipedrive/deals"
 "cloud_functions/pipedrive/organisations"
 "cloud_functions/runn/actuals"
