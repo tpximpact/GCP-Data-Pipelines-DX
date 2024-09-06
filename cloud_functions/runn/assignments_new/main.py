@@ -3,6 +3,7 @@ import pandas as pd
 import requests
 import time
 import copy
+import sys
 import numpy as np
 from datetime import datetime, timezone, date, timedelta
 
@@ -30,8 +31,10 @@ def load_config(project_id, service) -> dict:
     return {
         "url": "https://api.runn.io/assignments",
         "headers": runn_headers(project_id, service),
+        # "dataset_id": 'Runn_Raw',
         "dataset_id": os.environ.get("DATASET_ID"),
         "gcp_project": project_id,
+        # "table_name": 'assignments_new',
         "table_name": os.environ.get("TABLE_NAME"),
         "state_table_name": os.environ.get("STATE_TABLE_NAME"),
         "location": os.environ.get("TABLE_LOCATION"),
@@ -70,7 +73,7 @@ def number_days(item):
 
 
 def process_dataframe(df):
-  df["uniqueId"] = df["id"].astype(str) + "-" + df["updatedAt"].astype(str)
+  df["uniqueId"] = df["id"].astype(str) + "-" + df["startDate"].astype(str) + "-" + df["updatedAt"].astype(str)
   df["importDate"] = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
   df["numberDays"] = df.apply(number_days, axis=1)
 
@@ -92,7 +95,7 @@ def process_response_import_only(response, config):
     df = pd.DataFrame(data.get("values", []))
     df = process_dataframe(df)
 
-#     write_to_bigquery(config, df, "WRITE_APPEND")
+    # write_to_bigquery(config, df, "WRITE_APPEND")
 
     return next_cursor
   else:
@@ -104,25 +107,21 @@ def main(data: dict, context):
     config = load_config(project_id, service)
 
     start_date = (datetime.today() - timedelta(weeks=4)).strftime("%Y-%m-%d")
+    # Do we want to use end date too?
+    # I guess so, fewer queries, fewer resources, etc...
     end_date   = datetime.today().strftime("%Y-%m-%d")
-
-#     print(start_date)
-#     print(end_date)
 
     next_cursor = None
     page = 1
 
-#     url = config["url"] + f"?limit=500&startDate={start_date}"
-    url = config["url"] + f"?limit=500&startDate=2024-07-01"
-#     url = config["url"] + f"?limit=500"
+    url = config["url"] + f"?limit=500&startDate={start_date}&endDate={end_date}"
 
     response = requests.get(url=url, headers=config["headers"])
 
     next_cursor = process_response_import_only(response, config)
 
     while(next_cursor):
-      url = config["url"] + f"?limit=500&cursor={next_cursor}"
-#       print("url", url)
+      url = config["url"] + f"?limit=500&cursor={next_cursor}&startDate={start_date}&endDate={end_date}"
       response = requests.get(url=url, headers=config["headers"])
       next_cursor = process_response_import_only(response, config)
       page += 1
