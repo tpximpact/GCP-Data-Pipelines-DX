@@ -22,9 +22,9 @@ def load_config(project_id, service) -> dict:
   return {
     "url": "https://api.runn.io/clients",
     "headers": runn_headers(project_id, service),
-    "dataset_id": os.environ.get("DATASET_ID")  if os.environ.get("DATASET_ID") else "Runn_Raw",
+    "dataset_id": os.environ.get("DATASET_ID") if os.environ.get("DATASET_ID") else "Runn_Raw",
     "gcp_project": project_id,
-    "table_name": os.environ.get("TABLE_NAME")  if os.environ.get("TABLE_NAME") else "clients",
+    "table_name": os.environ.get("TABLE_NAME") if os.environ.get("TABLE_NAME") else "clients",
     "location": os.environ.get("TABLE_LOCATION") if os.environ.get("TABLE_LOCATION") else "europe-west2",
     "service": service,
   }
