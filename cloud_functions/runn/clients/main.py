@@ -9,7 +9,8 @@ from data_pipeline_tools.bigquery_helpers import (
 )
 
 from data_pipeline_tools.runn_tools import (
-  reference_value_get
+  reference_value_get,
+  handle_runn_rate_limits
 )
 
 project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
@@ -48,6 +49,8 @@ def page_get(url, headers):
     df["updatedAt"] = df["updatedAt"].apply(lambda dateString: pd.Timestamp(dateString))
 
     df = df.drop(columns=["references"])
+
+    handle_runn_rate_limits(response)
 
     return df, next_cursor
 
