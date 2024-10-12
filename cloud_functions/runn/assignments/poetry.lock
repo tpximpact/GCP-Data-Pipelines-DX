@@ -317,7 +317,7 @@ pandas = "*"
 type = "git"
 url = "https://github.com/tpximpact/GCP-Data-Pipelines-DX.git"
 reference = "feature/code-refactor"
-resolved_reference = "cc38fb6a6ff3e4d2b3d61f8ac436daacb1f5e04c"
+resolved_reference = "07a3c2eab980d74f726137070ff00edf8bb8a475"
 
 [[package]]
 name = "db-dtypes"

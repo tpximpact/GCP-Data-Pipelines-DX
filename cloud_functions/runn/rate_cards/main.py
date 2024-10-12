@@ -9,6 +9,9 @@ from data_pipeline_tools.bigquery_helpers import (
   write_to_bigquery
 )
 
+from data_pipeline_tools.runn_tools import (
+  handle_runn_rate_limits
+)
 
 project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
 
@@ -69,12 +72,15 @@ def main(data: dict, context):
 
       if not next_cursor:
         break
+      else:
+        handle_runn_rate_limits(response)
+
     else:
       raise Exception(f"Failed to fetch roles: {response.status_code}, {response.text}")
 
   df_rates["createdAt"] = df_rates["createdAt"].apply(lambda dateString: pd.Timestamp(dateString))
   df_rates["updatedAt"] = df_rates["updatedAt"].apply(lambda dateString: pd.Timestamp(dateString))
-  df_rates = df_rates.drop(columns=["projectIds"])
+  df_rates = df_rates.drop(columns=["projectIds", "references"])
 
   bigquery_client = bigquery_client_get(location=config["location"])
 

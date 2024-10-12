@@ -10,7 +10,8 @@ from data_pipeline_tools.bigquery_helpers import (
 )
 
 from data_pipeline_tools.runn_tools import (
-  reference_value_get
+  reference_value_get,
+  handle_runn_rate_limits
 )
 
 project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
@@ -56,6 +57,9 @@ def main(data: dict, context):
 
       if not next_cursor:
         break
+      else:
+        handle_runn_rate_limits(response)
+
     else:
         raise Exception(f"Failed to fetch people: {response.status_code}, {response.text}")
 

@@ -10,6 +10,10 @@ from data_pipeline_tools.bigquery_helpers import (
   write_to_bigquery
 )
 
+from data_pipeline_tools.runn_tools import (
+  handle_runn_rate_limits
+)
+
 project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
 
 if not project_id:
@@ -81,6 +85,8 @@ def process_response(response, config):
 
     df = pd.DataFrame(data.get("values", []))
     df = process_dataframe(df)
+
+    handle_runn_rate_limits(response)
 
     return next_cursor, df
   else:

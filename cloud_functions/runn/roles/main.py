@@ -9,6 +9,10 @@ from data_pipeline_tools.bigquery_helpers import (
   write_to_bigquery
 )
 
+from data_pipeline_tools.runn_tools import (
+  handle_runn_rate_limits
+)
+
 project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
 
 if not project_id:
@@ -44,6 +48,9 @@ def main(data: dict, context):
 
       if not next_cursor:
         break
+      else:
+        handle_runn_rate_limits(response)
+
     else:
       raise Exception(f"Failed to fetch roles: {response.status_code}, {response.text}")
 
