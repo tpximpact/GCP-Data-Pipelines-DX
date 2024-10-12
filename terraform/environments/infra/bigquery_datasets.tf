@@ -132,19 +132,6 @@ resource "google_bigquery_dataset" "invoices" {
   }
 }
 
-resource "google_bigquery_dataset" "state_tables" {
-  dataset_id  = "State"
-  description = "Dataset for maintaining any state requirements between function invocations"
-  location    = "europe-west2"
-
-  labels = {
-    env = var.env
-  }
-  default_encryption_configuration {
-    kms_key_name = google_kms_crypto_key.bigquery_key.id
-  }
-}
-
 resource "google_bigquery_dataset" "static_data" {
   dataset_id  = "Static_Data"
   description = "Dataset for static data managed in sheets and other non dynamic data sources"

@@ -21,7 +21,7 @@ def load_config(project_id, service) -> dict:
     "headers"            : runn_headers(project_id, service),
     "dataset_id"         : os.environ.get("DATASET_ID") if os.environ.get("DATASET_ID") else "Runn_Raw",
     "gcp_project"        : project_id,
-    "table_name"         : os.environ.get("TABLE_NAME") if os.environ.get("TABLE_NAME") else "rate_cards",
+    "rates_table_name"   : os.environ.get("RATES_TABLE_NAME") if os.environ.get("RATES_TABLE_NAME") else "rate_cards",
     "projects_table_name": os.environ.get("PROJECTS_TABLE_NAME") if os.environ.get("PROJECTS_TABLE_NAME") else "rate_project_rates",
     "location"           : os.environ.get("TABLE_LOCATION") if os.environ.get("TABLE_LOCATION") else "europe-west2",
     "service"            : service
@@ -81,7 +81,7 @@ def main(data: dict, context):
   write_to_bigquery(
     client=bigquery_client,
     dataset_id=config["dataset_id"],
-    table_name=config["table_name"],
+    table_name=config["rates_table_name"],
     df=df_rates,
     write_disposition="WRITE_TRUNCATE"
   )

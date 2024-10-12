@@ -131,7 +131,7 @@ dmypy.json
 .terraform*
 
 # txts (requests.txt)
-*.txt
+
 
 # macos
 .DS_Store
