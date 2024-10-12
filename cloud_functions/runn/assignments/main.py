@@ -2,29 +2,32 @@ import os
 import pandas as pd
 import requests
 
-from google.cloud import bigquery
 from datetime import datetime, timezone
 from data_pipeline_tools.auth import runn_headers
 
+from data_pipeline_tools.bigquery_helpers import (
+  bigquery_client_get,
+  write_to_bigquery
+)
 
 project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
 
 if not project_id:
-    project_id = "tpx-dx-dashboards"
+  project_id = "tpx-dx-dashboards"
 
 if not project_id:
-    project_id = input("Enter GCP project ID: ")
+  project_id = input("Enter GCP project ID: ")
 
 
 def load_config(project_id, service) -> dict:
   return {
-    "url": "https://api.runn.io/assignments",
-    "headers": runn_headers(project_id, service),
-    "dataset_id": os.environ.get("DATASET_ID") if os.environ.get("DATASET_ID") else "Runn_Raw",
+    "url"        : "https://api.runn.io/assignments?limit=500",
+    "headers"    : runn_headers(project_id, service),
+    "dataset_id" : os.environ.get("DATASET_ID") if os.environ.get("DATASET_ID") else "Runn_Raw",
     "gcp_project": project_id,
-    "table_name": os.environ.get("TABLE_NAME") if os.environ.get("TABLE_NAME") else "assignments",
-    "location": os.environ.get("TABLE_LOCATION") if os.environ.get("TABLE_LOCATION") else "europe-west2",
-    "service": service,
+    "table_name" : os.environ.get("TABLE_NAME") if os.environ.get("TABLE_NAME") else "assignments",
+    "location"   : os.environ.get("TABLE_LOCATION") if os.environ.get("TABLE_LOCATION") else "europe-west2",
+    "service"    : service,
   }
 
 def date_pd_timestamp(dateString):
@@ -35,17 +38,16 @@ def spent_date_pd_timestamp(dateString):
 
 
 def process_dataframe(df):
-  df["uniqueId"] = df["id"].astype(str) + "-" + df["startDate"].astype(str) + "-" + df["updatedAt"].astype(str)
-  df["importDate"] = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
-#   df["numberDays"] = df.apply(number_days, axis=1)
+  df["uniqueId"]     = df["id"].astype(str) + "-" + df["updatedAt"].astype(str)
+  df["importDate"]   = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
   df["workstreamId"] = df.apply(lambda x: 0, axis=1)
 
   df["phaseId"] = df["phaseId"].astype(float)
 
-  df["startDate"] = df["startDate"].apply(spent_date_pd_timestamp)
-  df["endDate"] = df["endDate"].apply(spent_date_pd_timestamp)
-  df["createdAt"] = df["createdAt"].apply(date_pd_timestamp)
-  df["updatedAt"] = df["updatedAt"].apply(date_pd_timestamp)
+  df["startDate"]  = df["startDate"].apply(spent_date_pd_timestamp)
+  df["endDate"]    = df["endDate"].apply(spent_date_pd_timestamp)
+  df["createdAt"]  = df["createdAt"].apply(date_pd_timestamp)
+  df["updatedAt"]  = df["updatedAt"].apply(date_pd_timestamp)
   df["importDate"] = df["importDate"].apply(date_pd_timestamp)
 
   df = df[[
@@ -72,43 +74,13 @@ def process_dataframe(df):
 
   return df
 
-def write_to_bigquery_local(client: bigquery.Client, dataset_id: str, table_name: str, df: pd.DataFrame, write_disposition: str) -> None:
-
-   # Get a reference to the BigQuery table to write to.
-  dataset_ref = client.dataset(dataset_id)
-  table_ref = dataset_ref.table(table_name)
-
-  # Set up the job configuration with the specified write disposition.
-  job_config = bigquery.LoadJobConfig(write_disposition=write_disposition)
-  job_config.autodetect = True
-
-  try:
-      # Write the DataFrame to BigQuery using the specified configuration.
-      job = client.load_table_from_dataframe(df, table_ref, job_config=job_config)
-      job.result()
-  except BadRequest as e:
-      print(f"Error writing DataFrame to BigQuery: {str(e)}")
-      return
-
-  # Print a message indicating how many rows were loaded.
-  print(
-      "Loaded {} rows into {}:{}.".format(
-          job.output_rows, dataset_id, table_name
-      )
-  )
-
-def process_response(response, config, bigquery_client, should_truncate):
+def process_response(response, config):
   if response.status_code == 200:
     data = response.json()
     next_cursor = data.get("nextCursor")
 
     df = pd.DataFrame(data.get("values", []))
     df = process_dataframe(df)
-
-#     if should_truncate:
-#
-#     else:
-#       write_to_bigquery_local(bigquery_client, config["dataset_id"], config["table_name"], df, "WRITE_APPEND")
 
     return next_cursor, df
   else:
@@ -117,21 +89,24 @@ def process_response(response, config, bigquery_client, should_truncate):
     raise Exception("Invalid API response")
 
 
-
 def main(data: dict, context):
-  service = "Data Pipeline - Runn assignments"
-  config = load_config(project_id, service)
-
-  bigquery_client = bigquery.Client(location=config["location"])
-
-  next_cursor = None
-  page = 1
-  url = config["url"] + f"?limit=500"
+  service         = "Data Pipeline - Runn assignments"
+  config          = load_config(project_id, service)
+  bigquery_client = bigquery_client_get(location=config["location"])
+  next_cursor     = None
+  page            = 1
+  url             = config["url"]
 
   response = requests.get(url=url, headers=config["headers"])
-  next_cursor, df = process_response(response, config=config, bigquery_client=bigquery_client, should_truncate=True)
+  next_cursor, df = process_response(response, config=config)
 
-  write_to_bigquery_local(bigquery_client, config["dataset_id"], config["table_name"], df, "WRITE_TRUNCATE")
+  write_to_bigquery(
+    client=bigquery_client,
+    dataset_id=config["dataset_id"],
+    table_name=config["table_name"],
+    df=df,
+    write_disposition="WRITE_TRUNCATE"
+  )
 
   storeDf = pd.DataFrame([])
 
@@ -139,7 +114,7 @@ def main(data: dict, context):
     print("Processing page", page)
 
     response = requests.get(url=f"{url}&cursor={next_cursor}", headers=config["headers"])
-    next_cursor, df = process_response(response, config=config, bigquery_client=bigquery_client, should_truncate=False)
+    next_cursor, df = process_response(response, config=config)
 
     if len(storeDf.index) > 0:
       storeDf = pd.concat([storeDf, df])
@@ -149,13 +124,26 @@ def main(data: dict, context):
     print("store length", len(storeDf.index), len(df.index))
 
     if len(storeDf.index) == 4000:
-      write_to_bigquery_local(bigquery_client, config["dataset_id"], config["table_name"], storeDf, "WRITE_APPEND")
+      write_to_bigquery(
+        client=bigquery_client,
+        dataset_id=config["dataset_id"],
+        table_name=config["table_name"],
+        df=storeDf,
+        write_disposition="WRITE_APPEND"
+      )
+
       storeDf = pd.DataFrame([])
 
     page += 1
 
   if len(storeDf.index) > 0:
-    write_to_bigquery_local(bigquery_client, config["dataset_id"], config["table_name"], storeDf, "WRITE_APPEND")
+    write_to_bigquery(
+      client=bigquery_client,
+      dataset_id=config["dataset_id"],
+      table_name=config["table_name"],
+      df=storeDf,
+      write_disposition="WRITE_APPEND"
+    )
 
 
   print("count", page, page * 500)

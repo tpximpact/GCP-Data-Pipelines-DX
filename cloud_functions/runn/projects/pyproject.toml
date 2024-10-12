@@ -12,7 +12,7 @@ pandas-gbq = "^0.23.1"
 google-cloud-core = "^2.4.1"
 google-cloud-bigquery = "^3.25.0"
 google-cloud-secret-manager = "^2.20.0"
-data_pipeline_tools = { git = "https://github.com/tpximpact/GCP-Data-Pipelines-DX.git", branch = "main" }
+data_pipeline_tools = { git = "https://github.com/tpximpact/GCP-Data-Pipelines-DX.git", branch = "feature/code-refactor" }
 
 
 [build-system]

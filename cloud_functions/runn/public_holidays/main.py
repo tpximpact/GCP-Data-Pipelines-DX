@@ -1,19 +1,13 @@
 import os
 import pandas as pd
 import requests
-import time
-import copy
-from datetime import datetime, timezone, date, timedelta
 
+from datetime import datetime, timezone
 from data_pipeline_tools.auth import runn_headers
-from data_pipeline_tools.util import (
-  handle_runn_rate_limits,
-  write_to_bigquery
-)
 
-from data_pipeline_tools.state import (
-    state_get,
-    state_update
+from data_pipeline_tools.bigquery_helpers import (
+  bigquery_client_get,
+  write_to_bigquery
 )
 
 project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
@@ -26,115 +20,125 @@ if not project_id:
 
 
 def load_config(project_id, service) -> dict:
-    return {
-        "url": "https://api.runn.io/time-offs/holidays",
-        "headers": runn_headers(project_id, service),
-        "dataset_id": os.environ.get("DATASET_ID"),
-        "gcp_project": project_id,
-        "table_name": os.environ.get("TABLE_NAME"),
-        "state_table_name": os.environ.get("STATE_TABLE_NAME"),
-        "location": os.environ.get("TABLE_LOCATION"),
-        "service": service,
-    }
+  return {
+    "url"        : "https://api.runn.io/time-offs/holidays?limit=200",
+    "headers"    : runn_headers(project_id, service),
+    "dataset_id" : os.environ.get("DATASET_ID") if os.environ.get("DATASET_ID") else "Runn_Raw",
+    "gcp_project": project_id,
+    "table_name" : os.environ.get("TABLE_NAME") if os.environ.get("TABLE_NAME") else "public_holidays",
+    "location"   : os.environ.get("TABLE_LOCATION") if os.environ.get("TABLE_LOCATION") else "europe-west2",
+    "service"    : service,
+  }
+
+def date_pd_timestamp(dateString):
+  return pd.Timestamp(dateString)
+
+def spent_date_pd_timestamp(dateString):
+  return pd.Timestamp(f"{dateString}T00:00:00Z")
 
 
-def date_to_timestamp(date_string) -> float:
-    parsed_date = datetime.fromisoformat(date_string[:-1])
-    return int(round(parsed_date.timestamp()))
+def process_dataframe(df):
+  df["uniqueId"]   = df["id"].astype(str) + "-" + df["updatedAt"].astype(str)
+  df["importDate"] = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
+  df["minutesPerDay"] = df["minutesPerDay"].apply(lambda x: x if x else 0)
+
+  df["startDate"]  = df["startDate"].apply(lambda dateString: pd.Timestamp(f"{dateString}T00:00:00Z"))
+  df["endDate"]    = df["endDate"].apply(lambda dateString: pd.Timestamp(f"{dateString}T00:00:00Z"))
+  df["createdAt"]  = df["createdAt"].apply(lambda dateString: pd.Timestamp(dateString))
+  df["updatedAt"]  = df["updatedAt"].apply(lambda dateString: pd.Timestamp(dateString))
+  df["importDate"] = df["importDate"].apply(lambda dateString: pd.Timestamp(dateString))
+
+  df = df[[
+    'uniqueId',
+    'id',
+    'personId',
+    'holidayId',
+    'startDate',
+    'endDate',
+    'minutesPerDay',
+    'note',
+    'createdAt',
+    'updatedAt',
+    'importDate'
+  ]]
+
+  return df
+
+def process_response(response, config):
+  if response.status_code == 200:
+    data = response.json()
+    next_cursor = data.get("nextCursor")
+
+    df = pd.DataFrame(data.get("values", []))
+    df = process_dataframe(df)
+
+    return next_cursor, df
+  else:
+    print(response.status_code)
+
+    raise Exception("Invalid API response")
 
 def main(data: dict, context):
-    service = "Data Pipeline - Runn public holidays"
-    config = load_config(project_id, service)
-    batch_size = 20
+  service         = "Data Pipeline - public holidays"
+  config          = load_config(project_id, service)
+  bigquery_client = bigquery_client_get(location=config["location"])
+  next_cursor     = None
+  page            = 1
+  url             = config["url"]
 
-    next_cursor, updated_since, batch_start_time = state_get(config["table_name"])
+  response = requests.get(url=url, headers=config["headers"])
+  next_cursor, df = process_response(response, config=config)
 
-    max_updated_since = updated_since if updated_since else 0
+  write_to_bigquery(
+    client=bigquery_client,
+    dataset_id=config["dataset_id"],
+    table_name=config["table_name"],
+    df=df,
+    write_disposition="WRITE_TRUNCATE"
+  )
 
-    if updated_since:
-        updated_since = datetime.fromtimestamp(updated_since, timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+  storeDf = pd.DataFrame([])
 
+  while(next_cursor):
+    print("Processing page", page)
 
-    for start_page in range(0, batch_size):
-        if next_cursor:
-            url = config["url"] + f"?cursor={next_cursor}"
-        elif updated_since:
-            url = config["url"] + f"?limit=200&modifiedAfter={updated_since}"
-        else:
-            url = config["url"] + f"?limit=200"
-
-        print("url", url)
-
-        response = requests.get(url=url, headers=config["headers"])
-
-        if response.status_code == 200:
-            data = response.json()
-            next_cursor = data.get("nextCursor")
-
-            df = pd.DataFrame(data.get("values", []))
-
-            if df.empty:
-                next_cursor = ""
-                break
-
-            max_updated_since_new = date_to_timestamp(df["updatedAt"].max())
-            max_updated_since = max_updated_since_new if max_updated_since_new > max_updated_since else max_updated_since
-
-            df = expand_rows(df)
-
-            df["unique_id"] = df["id"].astype(str) + "-" + df["startDate"].astype(str) + "-" + df["updatedAt"].astype(str)
-
-            write_to_bigquery(config, df, "WRITE_APPEND")
-
-            if not next_cursor:
-                next_cursor = ""
-                break
-            else:
-                handle_runn_rate_limits(response)
-
-        else:
-            raise Exception(f"Failed to fetch holidays: {response.status_code}, {response.text}")
-
-    state_update(config["table_name"], next_cursor, max_updated_since, batch_start_time, next_cursor == "")
+    response = requests.get(url=f"{config["url"]}&cursor={next_cursor}", headers=config["headers"])
+    next_cursor, df = process_response(response, config=config)
 
 
-def expand_rows(df):
-    # When an assignment is entered, it can be put in for a single day or multiple.
-    # For entries spanning across multiple days, this function converts to single day entries and returns the dataframe.
+    if len(storeDf.index) > 0:
+      storeDf = pd.concat([storeDf, df])
+    else:
+      storeDf = df
 
-    rows_to_edit = df[df["startDate"] != df["endDate"]]
-    single_assignment_rows = df[df["startDate"] == df["endDate"]]
-    edited_rows = []
+    print("store length", len(storeDf.index), len(df.index))
 
-    for _, row in rows_to_edit.iterrows():
-        # get the times
-        end_date = datetime.strptime(row["endDate"], "%Y-%m-%d")
-        start_date = datetime.strptime(row["startDate"], "%Y-%m-%d")
+    if len(storeDf.index) == 2000:
+      write_to_bigquery(
+        client=bigquery_client,
+        dataset_id=config["dataset_id"],
+        table_name=config["table_name"],
+        df=storeDf,
+        write_disposition="WRITE_APPEND"
+      )
 
-        dates = get_dates(start_date, end_date)
+      storeDf = pd.DataFrame([])
 
-        for date in dates:
-            edited_rows.append(make_assignments_row(copy.copy(row), date))
+    page += 1
 
-    return pd.concat([single_assignment_rows, pd.DataFrame(edited_rows)])
-
-
-def get_dates(start_date: datetime, end_date: datetime) -> list:
-    date = copy.copy(start_date)
-    dates_list = []
-    while date <= end_date:
-        if date.weekday() < 5:
-            dates_list.append(date)
-        date = date + timedelta(days=1)
-    return dates_list
+  if len(storeDf.index) > 0:
+    write_to_bigquery(
+      client=bigquery_client,
+      dataset_id=config["dataset_id"],
+      table_name=config["table_name"],
+      df=storeDf,
+      write_disposition="WRITE_APPEND"
+    )
 
 
-def make_assignments_row(row: pd.Series, date: datetime) -> pd.Series:
-    string_date = datetime.strftime(date, "%Y-%m-%d")
-    row["startDate"] = string_date
-    row["endDate"] = string_date
-    return row
+  print("count", page, page * 500)
+
 
 if __name__ == "__main__":
     main({}, None)

@@ -22,7 +22,7 @@ def load_config(project_id, service) -> dict:
     "dataset_id" : os.environ.get("DATASET_ID") if os.environ.get("DATASET_ID") else "Runn_Raw",
     "gcp_project": project_id,
     "table_name" : os.environ.get("TABLE_NAME") if os.environ.get("TABLE_NAME") else "contracts",
-    "location"   : os.environ.get("TABLE_LOCATION")  if os.environ.get("TABLE_LOCATION") else "europe-west2",
+    "location"   : os.environ.get("TABLE_LOCATION") if os.environ.get("TABLE_LOCATION") else "europe-west2",
     "service"    : service,
   }
 
