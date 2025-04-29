@@ -38,6 +38,8 @@ def main(data: dict, context):
   pages, entries = get_harvest_pages(config["url"], config["headers"])
   print(f"Total pages: {pages}")
 
+
+
   df = asyncio.run(
     get_all_data(
       config["url"], config["headers"], pages, "time_entries", batch_size=10
@@ -49,10 +51,11 @@ def main(data: dict, context):
   df["unique_id"]   = df["id"].astype(str) + "-" + df["updated_at"].astype(str)
   df["import_date"] = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
-  df["spent_date"]  = df["spent_date"].apply(lambda dateString: pd.Timestamp(dateString))
-  df["created_at"]  = df["created_at"].apply(lambda dateString: pd.Timestamp(dateString))
-  df["updated_at"]  = df["updated_at"].apply(lambda dateString: pd.Timestamp(dateString))
-  df["import_date"] = df["import_date"].apply(lambda dateString: pd.Timestamp(dateString))
+#   df["spent_date"]  = df["spent_date"].apply(lambda dateString: pd.Timestamp(f"{dateString}T00:00:00Z"))
+#   df["created_at"]  = df["created_at"].apply(lambda dateString: pd.Timestamp(dateString))
+#   df["updated_at"]  = df["updated_at"].apply(lambda dateString: pd.Timestamp(dateString))
+#   df["import_date"] = df["import_date"].apply(lambda dateString: pd.Timestamp(dateString))
+
 
   df["invoice_id"]     = df["invoice"].apply(lambda invoice: f"{invoice["id"]}" if invoice else "")
   df["invoice_number"] = df["invoice"].apply(lambda invoice: f"{invoice["number"]}" if invoice else "")
