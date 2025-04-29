@@ -18,7 +18,7 @@ def fetch_all_deals(api_client):
     while True:
       try:
         # Fetch a page of deals
-        response = api_client.crm.deals.basic_api.get_page(limit=100, after=after)
+        response = api_client.crm.deals.basic_api.get_page(limit=100, after=after, properties=["job_number", "moved_to_runn_","amount","pipeline","dealname","dealstage","closedate","createdate"])
         all_deals.extend([x.to_dict() for x in response.results])
 
         # Check if there is a next page
@@ -59,7 +59,7 @@ def main(data: dict, context: dict = None):
     df["unique_id"] = df["id"].astype(str) + "-" + df["updated_at"].astype(str)
     df["import_date"] = import_date
 
-    write_to_bigquery(config, df, "WRITE_APPEND")
+    write_to_bigquery(config, df, "WRITE_TRUNCATE")
 
   except ApiException as e:
     print("Exception when calling basic_api->get_page: %s\n" % e)

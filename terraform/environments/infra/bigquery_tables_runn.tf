@@ -142,6 +142,23 @@ resource "google_bigquery_table" "run_assignments_data_lake" {
   }
 }
 
+# --------------------------assignments_split_by_day table --------------------------------\
+resource "google_bigquery_table" "run_assignments_split_by_day" {
+  dataset_id = google_bigquery_dataset.runn_raw.dataset_id
+  table_id   = "assignments_split_by_day"
+
+
+  labels = {
+    env = var.env
+  }
+
+  deletion_protection = false
+
+  encryption_configuration {
+    kms_key_name = google_kms_crypto_key.bigquery_key.id
+  }
+}
+
 # --------------------------clients table --------------------------------\
 resource "google_bigquery_table" "runn_clients" {
   dataset_id = google_bigquery_dataset.runn_raw.dataset_id
@@ -246,6 +263,26 @@ resource "google_bigquery_table" "runn_project_rates" {
 resource "google_bigquery_table" "runn_public_holidays" {
   dataset_id = google_bigquery_dataset.runn_raw.dataset_id
   table_id   = "public_holidays"
+
+  time_partitioning {
+    type = "DAY"
+  }
+
+  labels = {
+    env = var.env
+  }
+
+  deletion_protection = false
+
+  encryption_configuration {
+    kms_key_name = google_kms_crypto_key.bigquery_key.id
+  }
+}
+
+# --------------------------public_holidays split by day table --------------------------------\
+resource "google_bigquery_table" "runn_public_holidays_split_by_day" {
+  dataset_id = google_bigquery_dataset.runn_raw.dataset_id
+  table_id   = "public_holidays_split_by_day"
 
   time_partitioning {
     type = "DAY"

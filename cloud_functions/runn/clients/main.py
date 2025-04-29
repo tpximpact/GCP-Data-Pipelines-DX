@@ -18,7 +18,6 @@ project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
 if not project_id:
   project_id = "tpx-dx-dashboards"
 
-
 def load_config(project_id, service) -> dict:
   return {
     "url": "https://api.runn.io/clients",

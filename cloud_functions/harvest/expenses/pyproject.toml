@@ -14,7 +14,7 @@ google-cloud-secret-manager = "^2.20.0"
 pyarrow = "^16.1.0"
 pandas-gbq = "^0.23.1"
 holidays = "^0.52"
-data_pipeline_tools = { git = "https://github.com/tpximpact/GCP-Data-Pipelines-DX.git", branch = "main" }
+data_pipeline_tools = { git = "https://github.com/tpximpact/GCP-Data-Pipelines-DX.git", branch = "feature/code-refactor" }
 pyforecast = { git = 'https://github.com/urquha/py_forecast', branch = "master" }
 
 [build-system]

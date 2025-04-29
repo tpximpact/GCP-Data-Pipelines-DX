@@ -30,6 +30,14 @@ def load_config(project_id, service) -> dict:
     "service"    : service,
   }
 
+def job_number_get(customFields):
+  job_number = ""
+
+  for row in customFields:
+    if row["id"] == 2785:
+      job_number = row["value"]
+
+  return job_number
 
 def get_first_project_tag(tags):
   if tags:
@@ -65,6 +73,8 @@ def main(data: dict, context):
 
   df = pd.DataFrame(projects)
   df["harvestId"]   = df["references"].apply(lambda references: reference_value_get("Harvest", references))
+  df["externalId"]  = df["references"].apply(lambda references: reference_value_get("externalId", references))
+  df["jobNumber"]   = df["customFields"].apply(lambda customFields: job_number_get(customFields['text']))
   df["projectType"] = df["tags"].apply(get_first_project_tag)
   df = df.drop(columns=["references", "customFields", "tags"])
 
