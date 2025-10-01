@@ -35,6 +35,7 @@ def fetch_all_deals(api_client):
                     "closedate",
                     "createdate",
                 ],
+                associations=["company"],
             )
             all_deals.extend([x.to_dict() for x in response.results])
 
@@ -75,9 +76,29 @@ def main(data: dict, context: dict = None):
         deals = fetch_all_deals(api_client)
         df = pd.DataFrame(deals)
 
-        df = find_and_flatten_columns(df)
         df["unique_id"] = df["id"].astype(str) + "-" + df["updated_at"].astype(str)
         df["import_date"] = import_date
+        # Pull out associated company id
+        df["associations_company"] = (
+            df["associations"]
+            .str.get("companies")
+            .str.get("results")
+            .apply(
+                # id of first item in nested list where type is 'deal_to_company'
+                lambda items: (
+                    next(
+                        item["id"]
+                        for item in items
+                        if item["type"] == "deal_to_company"
+                    )
+                    if items
+                    else None
+                )
+            )
+        )
+        # Associations data very loosely structured. Can't ingest it.
+        df["associations"] = None
+        df = find_and_flatten_columns(df)
 
         write_to_bigquery(config, df, "WRITE_TRUNCATE")
 
