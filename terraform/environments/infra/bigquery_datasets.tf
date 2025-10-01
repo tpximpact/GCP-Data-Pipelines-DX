@@ -158,6 +158,19 @@ resource "google_bigquery_dataset" "hubspot_raw" {
   }
 }
 
+resource "google_bigquery_dataset" "hubspot_processed" {
+  dataset_id  = "Hubspot_Processed"
+  description = "Dataset for hubspot processed data"
+  location    = "europe-west2"
+
+  labels = {
+    env = var.env
+  }
+  default_encryption_configuration {
+    kms_key_name = google_kms_crypto_key.bigquery_key.id
+  }
+}
+
 resource "google_bigquery_dataset" "google_sheets_presentation" {
   dataset_id = "Google_Sheets_Presentation"
   description = "Dataset for google sheets bigquery connected-sheets"
