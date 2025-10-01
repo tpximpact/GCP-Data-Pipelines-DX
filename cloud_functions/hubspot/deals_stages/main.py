@@ -19,7 +19,9 @@ def load_config(project_id, service, ingest_time) -> dict:
     return {
         "dataset_id": os.environ.get("DATASET_ID") or "Hubspot_Raw",
         "gcp_project": project_id,
-        "table_name": target_daily_partition(os.environ.get("TABLE_NAME") or "hubspot_deals_stages", ingest_time)
+        "table_name": target_daily_partition(
+            os.environ.get("TABLE_NAME") or "hubspot_deals_stages", ingest_time
+        ),
         "location": os.environ.get("TABLE_LOCATION"),
         "service": service,
     }
