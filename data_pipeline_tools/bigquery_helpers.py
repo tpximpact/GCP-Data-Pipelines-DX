@@ -1,31 +1,35 @@
 import pandas as pd
 from google.cloud import bigquery
 
+
 def bigquery_client_get(location: str) -> bigquery.Client:
- return bigquery.Client(location=location)
+    return bigquery.Client(location=location)
 
-def write_to_bigquery(client: bigquery.Client, dataset_id: str, table_name: str, df: pd.DataFrame, write_disposition: str) -> None:
 
-  # Get a reference to the BigQuery table to write to.
-  dataset_ref = client.dataset(dataset_id)
-  table_ref = dataset_ref.table(table_name)
+def write_to_bigquery(
+    client: bigquery.Client,
+    dataset_id: str,
+    table_name: str,
+    df: pd.DataFrame,
+    write_disposition: str,
+) -> None:
 
-  # Set up the job configuration with the specified write disposition.
-  job_config = bigquery.LoadJobConfig(write_disposition=write_disposition)
-  job_config.autodetect = True
+    # Get a reference to the BigQuery table to write to.
+    dataset_ref = client.dataset(dataset_id)
+    table_ref = dataset_ref.table(table_name)
 
-  try:
-    # Write the DataFrame to BigQuery using the specified configuration.
-    job = client.load_table_from_dataframe(df, table_ref, job_config=job_config)
-    job.result()
+    # Set up the job configuration with the specified write disposition.
+    job_config = bigquery.LoadJobConfig(write_disposition=write_disposition)
+    job_config.autodetect = True
 
-  except BadRequest as e:
-    print(f"Error writing DataFrame to BigQuery: {str(e)}")
-    return
+    try:
+        # Write the DataFrame to BigQuery using the specified configuration.
+        job = client.load_table_from_dataframe(df, table_ref, job_config=job_config)
+        job.result()
 
-  # Print a message indicating how many rows were loaded.
-  print(
-    "Loaded {} rows into {}:{}.".format(
-      job.output_rows, dataset_id, table_name
-    )
-  )
+    except BadRequest as e:
+        print(f"Error writing DataFrame to BigQuery: {str(e)}")
+        return
+
+    # Print a message indicating how many rows were loaded.
+    print("Loaded {} rows into {}:{}.".format(job.output_rows, dataset_id, table_name))

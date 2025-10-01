@@ -11,6 +11,7 @@ def harvest_headers(project_id, service):
         "Content-Type": "application/json",
     }
 
+
 def runn_headers(project_id, service):
     return {
         "User-Agent": "TPX Cloud Functions",

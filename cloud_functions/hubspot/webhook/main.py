@@ -1,13 +1,9 @@
-
-
 def main(request):
-  print(request)
+    print(request)
 
-  headers = {
+    headers = {}
 
-  }
-
-  return  ("Hello World!", 200, headers)
+    return ("Hello World!", 200, headers)
 
 
 if __name__ == "__main__":

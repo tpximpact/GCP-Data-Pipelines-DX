@@ -3,17 +3,19 @@ from datetime import datetime, timezone, date
 
 progress_table = "tpx-dx-dashboards.State.process_state"
 
+
 def state_get(id):
-  client = bigquery.Client()
+    client = bigquery.Client()
 
-  query = f"SELECT next_page, UNIX_SECONDS(updated_since) as updated_since, UNIX_SECONDS(batch_start_time) as batch_start_time FROM `{progress_table}` WHERE id = '{id}'"
-  query_job = client.query(query)
-  result = list(query_job.result())
+    query = f"SELECT next_page, UNIX_SECONDS(updated_since) as updated_since, UNIX_SECONDS(batch_start_time) as batch_start_time FROM `{progress_table}` WHERE id = '{id}'"
+    query_job = client.query(query)
+    result = list(query_job.result())
 
-  for row in result:
-      return row.next_page, row.updated_since, row.batch_start_time
+    for row in result:
+        return row.next_page, row.updated_since, row.batch_start_time
 
-  return None, None, None
+    return None, None, None
+
 
 def state_update(id, next_page, updated_since, batch_start_time, reset=false):
     client = bigquery.Client()
@@ -22,10 +24,9 @@ def state_update(id, next_page, updated_since, batch_start_time, reset=false):
 
     page_update = "page_number = page_number + 1"
 
-
-    if reset
-      batch_start_time = now
-      page_update = "page_number = 0"
+    if reset:
+        batch_start_time = now
+        page_update = "page_number = 0"
 
     if not batch_start_time:
         batch_start_time = now
