@@ -135,3 +135,7 @@ dmypy.json
 
 # macos
 .DS_Store
+
+
+# docker
+docker-compose.override.yml
