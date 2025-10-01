@@ -124,3 +124,18 @@ def get_harvest_pages(url: str, headers: dict):
 def unwrap_forecast_response(response: list) -> list:
     # This function maps a response to a json list
     return list(map(lambda item: item._json_data, response))
+
+
+def target_daily_partition(table_name, date):
+    """
+    Create a table partition decorator from a table name and a date.
+    Assumes a table partitioned 'daily' by ingest time
+    E.g 'companies$20251107'
+
+    Lets us reference a particular partition in a table for writing.
+
+    See https://cloud.google.com/bigquery/docs/partitioned-tables#partition_decorators
+    """
+
+    table_partition_id = date.strftime("%Y%m%d")
+    return table_name + "$" + table_partition_id
