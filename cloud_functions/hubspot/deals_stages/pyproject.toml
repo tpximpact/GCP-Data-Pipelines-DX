@@ -13,7 +13,7 @@ google-cloud-bigquery = "^3.25.0"
 google-cloud-secret-manager = "^2.20.2"
 pandas = "^2.2.2"
 pandas-gbq = "^0.23.1"
-data_pipeline_tools = { git = "https://github.com/tpximpact/GCP-Data-Pipelines-DX.git", branch = "main" }
+data_pipeline_tools = {git = "https://github.com/tpximpact/GCP-Data-Pipelines-DX.git", rev = "v1.0.1"}
 setuptools = "^72.1.0"
 
 [build-system]

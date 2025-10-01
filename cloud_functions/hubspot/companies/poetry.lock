@@ -271,7 +271,7 @@ files = [
 
 [[package]]
 name = "data-pipeline-tools"
-version = "1.0"
+version = "1.0.1"
 description = ""
 category = "main"
 optional = false
@@ -287,8 +287,8 @@ pandas = "*"
 [package.source]
 type = "git"
 url = "https://github.com/tpximpact/GCP-Data-Pipelines-DX.git"
-reference = "main"
-resolved_reference = "776cbe3bc4b0dcb10e776afc0379a1137de43c36"
+reference = "v1.0.1"
+resolved_reference = "f835029e47055043ecac820d2b062984abb320ba"
 
 [[package]]
 name = "db-dtypes"
@@ -1701,4 +1701,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "a242f9719216283dcd7bea508afd51f17c84c8ad1105285f9b780ad37f5766e8"
+content-hash = "a3ab71efbad1cd3df2fa6fef19b28b549c381544b6655e7a8c1ef2a376bd75aa"
