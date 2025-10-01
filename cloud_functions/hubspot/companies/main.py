@@ -5,6 +5,7 @@ import pandas as pd
 from data_pipeline_tools.util import (
     write_to_bigquery,
     find_and_flatten_columns,
+    target_daily_partition,
 )
 from data_pipeline_tools.auth import access_secret_version
 from datetime import datetime, timezone
@@ -48,15 +49,12 @@ def fetch_all_companies(api_client):
 
 def load_config(project_id, service, ingest_time) -> dict:
 
-    table_name = os.environ.get("TABLE_NAME") or "hubspot_companies"
-    # Target just the partition for this day.
-    table_partition_id = ingest_time.strftime("%Y%m%d")
-    table_name = table_name + "$" + table_partition_id
-
     return {
         "dataset_id": os.environ.get("DATASET_ID") or "Hubspot_Raw",
         "gcp_project": project_id,
-        "table_name": table_name,
+        "table_name": target_daily_partition(
+            os.environ.get("TABLE_NAME") or "hubspot_companies", ingest_time
+        ),
         "location": os.environ.get("TABLE_LOCATION") or "europe-west2",
         "service": service,
     }

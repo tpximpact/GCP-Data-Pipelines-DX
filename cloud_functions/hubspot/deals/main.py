@@ -2,7 +2,11 @@ import os
 from hubspot import HubSpot
 from hubspot.crm.deals import ApiException
 import pandas as pd
-from data_pipeline_tools.util import write_to_bigquery, find_and_flatten_columns
+from data_pipeline_tools.util import (
+    write_to_bigquery,
+    find_and_flatten_columns,
+    target_daily_partition,
+)
 from data_pipeline_tools.auth import access_secret_version
 from datetime import datetime, timezone
 
@@ -54,11 +58,13 @@ def fetch_all_deals(api_client):
     return all_deals
 
 
-def load_config(project_id, service) -> dict:
+def load_config(project_id, service, ingest_time) -> dict:
     return {
         "dataset_id": os.environ.get("DATASET_ID") or "Hubspot_Raw",
         "gcp_project": project_id,
-        "table_name": os.environ.get("TABLE_NAME") or "hubspot_deals",
+        "table_name": target_daily_partition(
+            os.environ.get("TABLE_NAME") or "hubspot_deals", ingest_time
+        ),
         "location": os.environ.get("TABLE_LOCATION") or "europe-west2",
         "service": service,
     }
@@ -69,8 +75,9 @@ def main(data: dict, context: dict = None):
     hubspot_token = access_secret_version(project_id, "HUBSPOT_TOKEN")
 
     api_client = HubSpot(access_token=hubspot_token)
-    config = load_config(project_id, service)
-    import_date = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    now = datetime.now(timezone.utc)
+    config = load_config(project_id, service, now)
+    import_date = now.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     try:
         deals = fetch_all_deals(api_client)
