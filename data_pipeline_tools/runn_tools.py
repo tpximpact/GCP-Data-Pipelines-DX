@@ -1,3 +1,6 @@
+import time
+
+
 def reference_value_get(reference_name: str, references: list):
     reference_value = ""
 

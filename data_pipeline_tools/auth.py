@@ -13,10 +13,15 @@ def harvest_headers(project_id, service):
 
 
 def runn_headers(project_id, service):
+    return runn_headers_base(
+        access_secret_version(project_id, "RUNN_ACCESS_TOKEN"), service
+    )
+
+
+def runn_headers_base(api_token, service):
     return {
         "User-Agent": "TPX Cloud Functions",
-        "Authorization": "Bearer "
-        + access_secret_version(project_id, "RUNN_ACCESS_TOKEN"),
+        "Authorization": "Bearer " + api_token,
         "service": service,
         "Accept": "application/json",
         "Accept-Version": "1.0.0",

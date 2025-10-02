@@ -1,5 +1,6 @@
 import pandas as pd
 from google.cloud import bigquery
+from google.api_core.exceptions import BadRequest
 
 
 def bigquery_client_get(location: str) -> bigquery.Client:
