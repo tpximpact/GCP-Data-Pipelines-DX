@@ -7,15 +7,14 @@ readme = "README.md"
 packages = [{include = "months_table"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
-google-cloud-core = "^2.3.2"
-google-cloud-bigquery = "^3.5.0"
-google-cloud-secret-manager = "^2.15.1"
-pyarrow = "^11.0.0"
-pandas-gbq = "^0.19.1"
-data_pipeline_tools = { git = "https://github.com/tpximpact/GCP-Data-Pipelines.git", branch = "main" }
-pandas = "^1.5.3"
-
+python = "^3.12"
+google-cloud-core = "^2.4.1"
+google-cloud-bigquery = "^3.25.0"
+google-cloud-secret-manager = "^2.20.0"
+pyarrow = "^16.1.0"
+pandas-gbq = "^0.23.1"
+data_pipeline_tools = { git = "https://github.com/tpximpact/GCP-Data-Pipelines-DX.git", branch = "main" }
+pandas = "^2.2.2"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

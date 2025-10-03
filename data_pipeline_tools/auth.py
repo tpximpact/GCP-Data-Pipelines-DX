@@ -17,8 +17,8 @@ def runn_headers(project_id, service):
         "Authorization": "Bearer "
         + access_secret_version(project_id, "RUNN_ACCESS_TOKEN"),
         "service": service,
-        "Content-Type": "application/json",
-        "Accept-Version": "1.0.0"
+        "Accept": "application/json",
+        "Accept-Version": "1.0.0",
     }
 
 

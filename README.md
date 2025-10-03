@@ -71,3 +71,10 @@ These cloud functions are part of the HR Data Integration and Reporting system a
 ### Usage
 
 The cloud functions in this repository connect to HiBob, Harvest, Forecast, and Pipedrive APIs to collect and process data for the HR and Finance systems. The collected data is stored in raw tables within Google BigQuery. In the future, SQL queries will be added to generate tables that can be connected to Google Data Studio for creating comprehensive reports on the gathered data.
+
+
+### Runn export the dependencies
+
+To export all dependencies for each directory in cloud_functions/runn, use the following command to export the dependencies to the requirements.txt file for each individual directory in this project.
+
+   sh -x dependencies-setup.sh
