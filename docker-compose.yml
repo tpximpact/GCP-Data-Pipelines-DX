@@ -5,6 +5,7 @@ services:
     build: ./
     volumes:
       - ./cloud_functions:/cloud_functions
+      - ./cloud_run_jobs:/cloud_run_jobs
       - ./data_pipeline_tools:/data-pipeline-tools
       - ./terraform:/terraform
     stdin_open: true

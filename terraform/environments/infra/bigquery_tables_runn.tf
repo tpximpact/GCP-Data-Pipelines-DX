@@ -4,8 +4,7 @@ resource "google_bigquery_table" "runn_assignments" {
   table_id   = "assignments"
 
   time_partitioning {
-    type          = "MONTH"
-    field         = "startDate"
+    type = "DAY"
   }
 
   schema = <<EOF
@@ -37,7 +36,7 @@ resource "google_bigquery_table" "runn_assignments" {
     },
     {
       "name": "phaseId",
-      "type": "FLOAT",
+      "type": "INTEGER",
       "mode": "NULLABLE"
     },
     {
@@ -120,16 +119,33 @@ resource "google_bigquery_table" "runn_assignments" {
 }
 
 # --------------------------assignments_data_lake table --------------------------------\
-resource "google_bigquery_table" "run_assignments_data_lake" {
+# resource "google_bigquery_table" "run_assignments_data_lake" {
+#   dataset_id = google_bigquery_dataset.runn_raw.dataset_id
+#   table_id   = "assignments_data_lake"
+#
+#   time_partitioning {
+#     type          = "MONTH"
+#     field         = "startDate"
+#   }
+#
+#   schema = google_bigquery_table.runn_assignments.schema
+#
+#   labels = {
+#     env = var.env
+#   }
+#
+#   deletion_protection = false
+#
+#   encryption_configuration {
+#     kms_key_name = google_kms_crypto_key.bigquery_key.id
+#   }
+# }
+
+# --------------------------assignments_split_by_day table --------------------------------\
+resource "google_bigquery_table" "run_assignments_split_by_day" {
   dataset_id = google_bigquery_dataset.runn_raw.dataset_id
-  table_id   = "assignments_data_lake"
+  table_id   = "assignments_split_by_day"
 
-  time_partitioning {
-    type          = "MONTH"
-    field         = "startDate"
-  }
-
-  schema = google_bigquery_table.runn_assignments.schema
 
   labels = {
     env = var.env
@@ -142,10 +158,89 @@ resource "google_bigquery_table" "run_assignments_data_lake" {
   }
 }
 
-# --------------------------assignments_split_by_day table --------------------------------\
-resource "google_bigquery_table" "run_assignments_split_by_day" {
+# --------------------------actuals table --------------------------------\
+resource "google_bigquery_table" "runn_actuals" {
   dataset_id = google_bigquery_dataset.runn_raw.dataset_id
-  table_id   = "assignments_split_by_day"
+  table_id   = "actuals"
+
+  time_partitioning {
+    type = "DAY"
+  }
+
+  schema = <<EOF
+  [
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "personId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "projectId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "roleId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "phaseId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "date",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "billableMinutes",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "nonbillableMinutes",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "billableNote",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "nonbillableNote",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "workstreamId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "createdAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "updatedAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "importDate",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    }
+  ]
+  EOF
 
 
   labels = {
@@ -203,10 +298,6 @@ resource "google_bigquery_table" "runn_contracts" {
 resource "google_bigquery_table" "runn_people" {
   dataset_id = google_bigquery_dataset.runn_raw.dataset_id
   table_id   = "people"
-
-  #  time_partitioning {
-  #    type = "DAY"
-  #  }
 
   labels = {
     env = var.env
