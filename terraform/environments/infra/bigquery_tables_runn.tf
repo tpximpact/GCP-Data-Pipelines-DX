@@ -111,55 +111,13 @@ resource "google_bigquery_table" "runn_assignments" {
     env = var.env
   }
 
-  deletion_protection = false
+  deletion_protection = true
 
   encryption_configuration {
     kms_key_name = google_kms_crypto_key.bigquery_key.id
   }
 }
 
-# --------------------------assignments_data_lake table --------------------------------\
-# resource "google_bigquery_table" "run_assignments_data_lake" {
-#   dataset_id = google_bigquery_dataset.runn_raw.dataset_id
-#   table_id   = "assignments_data_lake"
-#
-#   time_partitioning {
-#     type          = "MONTH"
-#     field         = "startDate"
-#   }
-#
-#   schema = google_bigquery_table.runn_assignments.schema
-#
-#   labels = {
-#     env = var.env
-#   }
-#
-#   deletion_protection = false
-#
-#   encryption_configuration {
-#     kms_key_name = google_kms_crypto_key.bigquery_key.id
-#   }
-# }
-
-# --------------------------assignments_split_by_day table --------------------------------\
-# resource "google_bigquery_table" "run_assignments_split_by_day" {
-#   dataset_id = google_bigquery_dataset.runn_raw.dataset_id
-#   table_id   = "assignments_split_by_day"
-#
-#   time_partitioning {
-#     type = "DAY"
-#   }
-#
-#   labels = {
-#     env = var.env
-#   }
-#
-#   deletion_protection = false
-#
-#   encryption_configuration {
-#     kms_key_name = google_kms_crypto_key.bigquery_key.id
-#   }
-# }
 
 # --------------------------actuals table --------------------------------\
 resource "google_bigquery_table" "runn_actuals" {
@@ -250,7 +208,7 @@ resource "google_bigquery_table" "runn_actuals" {
     env = var.env
   }
 
-  deletion_protection = false
+  deletion_protection = true
 
   encryption_configuration {
     kms_key_name = google_kms_crypto_key.bigquery_key.id
@@ -310,7 +268,7 @@ resource "google_bigquery_table" "runn_clients" {
     env = var.env
   }
 
-  deletion_protection = false
+  deletion_protection = true
 
   encryption_configuration {
     kms_key_name = google_kms_crypto_key.bigquery_key.id
@@ -415,7 +373,7 @@ resource "google_bigquery_table" "runn_contracts" {
     env = var.env
   }
 
-  deletion_protection = false
+  deletion_protection = true
 
   encryption_configuration {
     kms_key_name = google_kms_crypto_key.bigquery_key.id
@@ -503,7 +461,7 @@ resource "google_bigquery_table" "runn_people" {
     env = var.env
   }
 
-  deletion_protection = false
+  deletion_protection = true
 
   encryption_configuration {
     kms_key_name = google_kms_crypto_key.bigquery_key.id
@@ -624,7 +582,7 @@ resource "google_bigquery_table" "runn_projects" {
     env = var.env
   }
 
-  deletion_protection = false
+  deletion_protection = true
 
   encryption_configuration {
     kms_key_name = google_kms_crypto_key.bigquery_key.id
@@ -644,7 +602,7 @@ resource "google_bigquery_table" "runn_project_rates" {
     env = var.env
   }
 
-  deletion_protection = false
+  deletion_protection = true
 
   encryption_configuration {
     kms_key_name = google_kms_crypto_key.bigquery_key.id
@@ -724,7 +682,7 @@ resource "google_bigquery_table" "runn_public_holidays" {
     env = var.env
   }
 
-  deletion_protection = false
+  deletion_protection = true
 
   encryption_configuration {
     kms_key_name = google_kms_crypto_key.bigquery_key.id
@@ -744,7 +702,7 @@ resource "google_bigquery_table" "runn_public_holidays_split_by_day" {
     env = var.env
   }
 
-  deletion_protection = false
+  deletion_protection = true
 
   encryption_configuration {
     kms_key_name = google_kms_crypto_key.bigquery_key.id
@@ -848,7 +806,7 @@ resource "google_bigquery_table" "runn_rate_cards" {
     env = var.env
   }
 
-  deletion_protection = false
+  deletion_protection = true
 
   encryption_configuration {
     kms_key_name = google_kms_crypto_key.bigquery_key.id
@@ -914,7 +872,7 @@ resource "google_bigquery_table" "runn_roles" {
     env = var.env
   }
 
-  deletion_protection = false
+  deletion_protection = true
 
   encryption_configuration {
     kms_key_name = google_kms_crypto_key.bigquery_key.id
@@ -959,7 +917,7 @@ resource "google_bigquery_table" "runn_teams" {
     env = var.env
   }
 
-  deletion_protection = false
+  deletion_protection = true
 
   encryption_configuration {
     kms_key_name = google_kms_crypto_key.bigquery_key.id
