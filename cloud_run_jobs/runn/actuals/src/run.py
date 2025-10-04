@@ -1,7 +1,6 @@
-from .fetch import fetch_all
-import pandas as pd
 import os
 from dotenv import load_dotenv
+from data_pipeline_tools.runn_tools import fetch_all
 
 load_dotenv()
 
@@ -10,21 +9,14 @@ runn_api_token = os.environ.get("RUNN_API_TOKEN")
 
 
 def main():
-    """
-    Fetch all the actuals. Append to one large dataframe.
-
-    Prints progress. Useful for debugging
-    """
-    bundle = pd.DataFrame([])
-
-    pages = fetch_all(runn_api_token)
+    pages = fetch_all(
+        token=runn_api_token,
+        base_url="https://api.runn.io/actuals/",
+        service="Data Pipeline - Actuals",
+    )
 
     first = next(pages)
-
     print(first.info())
-    # for df in fetch_all(runn_api_token):
-    #     bundle = pd.concat([bundle, df])
-    #     print(bundle)
 
 
 if __name__ == "__main__":

@@ -298,8 +298,8 @@ pandas = "*"
 [package.source]
 type = "git"
 url = "https://github.com/tpximpact/GCP-Data-Pipelines-DX.git"
-reference = "v1.0.3"
-resolved_reference = "8e500c2d160b8c9a3862f837158a29a472e8f497"
+reference = "v1.0.4"
+resolved_reference = "3c5a083c51c8a120d9e83107e7e1616e607c1984"
 
 [[package]]
 name = "db-dtypes"
@@ -1689,4 +1689,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "4e5fc42a256062e31ef861e4efbcba5f9c436d87e71371aa10f7e47735b3de21"
+content-hash = "0cef025d3c2afaa2d9ce0ac15d326010af9dab2c70b50a3e1c9195f8a1ec56fa"

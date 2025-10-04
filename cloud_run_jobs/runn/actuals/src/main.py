@@ -3,8 +3,8 @@ import pandas as pd
 from data_pipeline_tools.bigquery_helpers import bigquery_client_get, write_to_bigquery
 from data_pipeline_tools.auth import runn_headers, access_secret_version
 from data_pipeline_tools.util import target_daily_partition
+from data_pipeline_tools.runn_tools import fetch_all
 from datetime import datetime, timezone
-from .fetch import fetch_all
 from itertools import batched
 
 
@@ -45,9 +45,13 @@ def main(data: dict, context):
     runn_api_token = access_secret_version(project_id, "RUNN_ACCESS_TOKEN")
     bigquery_client = bigquery_client_get(location=config["location"])
 
-    for batch_num, batch in enumerate(
-        batched(fetch_all(token=runn_api_token), BATCH_SIZE)
-    ):
+    pages = fetch_all(
+        token=runn_api_token,
+        base_url="https://api.runn.io/actuals/",
+        service="Data Pipeline - Actuals",
+    )
+
+    for batch_num, batch in enumerate(batched(pages, BATCH_SIZE)):
         # First frame truncates partition
         # Subsequent frames append
         disposition = "WRITE_TRUNCATE_DATA" if batch_num == 0 else "WRITE_APPEND"
