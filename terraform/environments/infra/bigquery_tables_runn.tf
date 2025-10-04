@@ -142,21 +142,24 @@ resource "google_bigquery_table" "runn_assignments" {
 # }
 
 # --------------------------assignments_split_by_day table --------------------------------\
-resource "google_bigquery_table" "run_assignments_split_by_day" {
-  dataset_id = google_bigquery_dataset.runn_raw.dataset_id
-  table_id   = "assignments_split_by_day"
-
-
-  labels = {
-    env = var.env
-  }
-
-  deletion_protection = false
-
-  encryption_configuration {
-    kms_key_name = google_kms_crypto_key.bigquery_key.id
-  }
-}
+# resource "google_bigquery_table" "run_assignments_split_by_day" {
+#   dataset_id = google_bigquery_dataset.runn_raw.dataset_id
+#   table_id   = "assignments_split_by_day"
+#
+#   time_partitioning {
+#     type = "DAY"
+#   }
+#
+#   labels = {
+#     env = var.env
+#   }
+#
+#   deletion_protection = false
+#
+#   encryption_configuration {
+#     kms_key_name = google_kms_crypto_key.bigquery_key.id
+#   }
+# }
 
 # --------------------------actuals table --------------------------------\
 resource "google_bigquery_table" "runn_actuals" {
@@ -263,6 +266,46 @@ resource "google_bigquery_table" "runn_clients" {
     type = "DAY"
   }
 
+  schema = <<EOF
+  [
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "name",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "website",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "isArchived",
+      "type": "BOOLEAN",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "createdAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "updatedAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "harvestId",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    }
+  ]
+  EOF
+
   labels = {
     env = var.env
   }
@@ -283,6 +326,91 @@ resource "google_bigquery_table" "runn_contracts" {
     type = "DAY"
   }
 
+  schema = <<EOF
+  [
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "costPerHour",
+      "type": "FLOAT",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "employmentType",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "minutesPerDay",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "startDate",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "endDate",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "roleId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "personId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "jobTitle",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "createdAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "updatedAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "day_monday",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "day_tuesday",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "day_wednesday",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "day_thursday",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "day_friday",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    }
+  ]
+  EOF
+
   labels = {
     env = var.env
   }
@@ -298,6 +426,78 @@ resource "google_bigquery_table" "runn_contracts" {
 resource "google_bigquery_table" "runn_people" {
   dataset_id = google_bigquery_dataset.runn_raw.dataset_id
   table_id   = "people"
+
+  time_partitioning {
+    type = "DAY"
+  }
+
+  schema = <<EOF
+  [
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "firstName",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "lastName",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "email",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "isArchived",
+      "type": "BOOLEAN",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "teamId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "holidaysGroupId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "harvestId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "managers",
+      "type": "RECORD",
+      "mode": "REPEATED",
+      "fields": [
+        {
+        "name": "id",
+        "type": "INTEGER",
+        "mode": "NULLABLE"
+        }
+      ]
+    },
+    {
+      "name": "createdAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "updatedAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    }
+  ]
+  EOF
+
 
   labels = {
     env = var.env
@@ -318,6 +518,107 @@ resource "google_bigquery_table" "runn_projects" {
   time_partitioning {
     type = "DAY"
   }
+
+  schema = <<EOF
+  [
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "name",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "isTemplate",
+      "type": "BOOLEAN",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "isArchived",
+      "type": "BOOLEAN",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "isConfirmed",
+      "type": "BOOLEAN",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "pricingModel",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "rateType",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "teamId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "budget",
+      "type": "FLOAT",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "expensesBudget",
+      "type": "FLOAT",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "clientId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "rateCardId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "managerIds",
+      "type": "INTEGER",
+      "mode": "REPEATED"
+    },
+    {
+      "name": "createdAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "updatedAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "harvestId",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "externalId",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "jobNumber",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "projectType",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    }
+  ]
+  EOF
+ 
 
   labels = {
     env = var.env
@@ -359,6 +660,66 @@ resource "google_bigquery_table" "runn_public_holidays" {
     type = "DAY"
   }
 
+  schema = <<EOF
+  [
+    {
+      "name": "uniqueId",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "personId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "holidayId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "startDate",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "endDate",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "minutesPerDay",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "note",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "createdAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "updatedAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "importDate",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    }
+  ]
+  EOF
+
   labels = {
     env = var.env
   }
@@ -399,6 +760,90 @@ resource "google_bigquery_table" "runn_rate_cards" {
     type = "DAY"
   }
 
+  schema = <<EOF
+  [
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "name",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "description",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "isArchived",
+      "type": "BOOLEAN",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "isBlendedRateCard",
+      "type": "BOOLEAN",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "blendedRate",
+      "type": "FLOAT",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "rateType",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "rates",
+      "type": "RECORD",
+      "mode": "REPEATED",
+      "fields": [
+        {
+          "name": "rateDaily",
+          "type": "FLOAT",
+          "mode": "NULLABLE"
+        },
+        {
+          "name": "rateHourly",
+          "type": "FLOAT",
+          "mode": "NULLABLE"
+        },
+        {
+          "name": "role",
+          "type": "RECORD",
+          "mode": "NULLABLE",
+          "fields": [
+            {
+              "name": "id",
+              "type": "INTEGER",
+              "mode": "NULLABLE"
+            },
+            {
+              "name": "name",
+              "type": "STRING",
+              "mode": "NULLABLE"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "createdAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "updatedAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    }
+  ]
+  EOF
+
   labels = {
     env = var.env
   }
@@ -420,6 +865,51 @@ resource "google_bigquery_table" "runn_roles" {
     type = "DAY"
   }
 
+  schema = <<EOF
+  [
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "name",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "isArchived",
+      "type": "BOOLEAN",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "defaultHourCost",
+      "type": "FLOAT",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "standardRate",
+      "type": "FLOAT",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "personIds",
+      "type": "INTEGER",
+      "mode": "REPEATED"
+    },
+    {
+      "name": "createdAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "updatedAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    }
+  ]
+  EOF
+
   labels = {
     env = var.env
   }
@@ -439,6 +929,31 @@ resource "google_bigquery_table" "runn_teams" {
   time_partitioning {
     type = "DAY"
   }
+
+  schema = <<EOF
+  [
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "name",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "createdAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "updatedAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    }
+  ]
+  EOF
 
   labels = {
     env = var.env
