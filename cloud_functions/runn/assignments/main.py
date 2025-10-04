@@ -3,13 +3,18 @@ import pandas as pd
 import requests
 
 from datetime import datetime, timezone
-from data_pipeline_tools.auth import runn_headers
+from data_pipeline_tools.auth import runn_headers, access_secret_version
 
 from data_pipeline_tools.bigquery_helpers import bigquery_client_get, write_to_bigquery
+from data_pipeline_tools.util import target_daily_partition
 
 from data_pipeline_tools.runn_tools import handle_runn_rate_limits
+from data_pipeline_tools.runn_tools import fetch_all
+from itertools import batched
 
-project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
+BATCH_SIZE = 50
+
+project_id = os.environ.get("GOOGLE_CLOUD_PROJECT") or "tpx-dx-dashboards"
 
 if not project_id:
     project_id = "tpx-dx-dashboards"
@@ -18,24 +23,15 @@ if not project_id:
     project_id = input("Enter GCP project ID: ")
 
 
-def load_config(project_id, service) -> dict:
+def load_config(project_id, service, ingest_time) -> dict:
     return {
-        "url": "https://api.runn.io/assignments?limit=500",
         "headers": runn_headers(project_id, service),
-        "dataset_id": (
-            os.environ.get("DATASET_ID") if os.environ.get("DATASET_ID") else "Runn_Raw"
-        ),
+        "dataset_id": (os.environ.get("DATASET_ID") or "Runn_Raw"),
         "gcp_project": project_id,
-        "table_name": (
-            os.environ.get("TABLE_NAME")
-            if os.environ.get("TABLE_NAME")
-            else "assignments"
+        "table_name": target_daily_partition(
+            os.environ.get("TABLE_NAME") or "assignments", ingest_time
         ),
-        "location": (
-            os.environ.get("TABLE_LOCATION")
-            if os.environ.get("TABLE_LOCATION")
-            else "europe-west2"
-        ),
+        "location": (os.environ.get("TABLE_LOCATION") or "europe-west2"),
         "service": service,
     }
 
@@ -88,82 +84,35 @@ def process_dataframe(df):
     return df
 
 
-def process_response(response, config):
-    if response.status_code == 200:
-        data = response.json()
-        next_cursor = data.get("nextCursor")
-
-        df = pd.DataFrame(data.get("values", []))
-        df = process_dataframe(df)
-
-        handle_runn_rate_limits(response)
-
-        return next_cursor, df
-    else:
-        print(response.status_code)
-
-        raise Exception("Invalid API response")
-
-
 def main(data: dict, context):
-    service = "Data Pipeline - Runn assignments"
-    config = load_config(project_id, service)
+    service = "Data Pipeline - Assignments"
+    now = datetime.now(timezone.utc)
+    config = load_config(project_id, service, now)
+
+    runn_api_token = access_secret_version(project_id, "RUNN_ACCESS_TOKEN")
     bigquery_client = bigquery_client_get(location=config["location"])
-    next_cursor = None
-    page = 1
-    url = config["url"]
 
-    response = requests.get(url=url, headers=config["headers"])
-    next_cursor, df = process_response(response, config=config)
-
-    write_to_bigquery(
-        client=bigquery_client,
-        dataset_id=config["dataset_id"],
-        table_name=config["table_name"],
-        df=df,
-        write_disposition="WRITE_TRUNCATE",
+    pages = fetch_all(
+        token=runn_api_token,
+        base_url="https://api.runn.io/assignments/",
+        service=service,
     )
 
-    storeDf = pd.DataFrame([])
+    for batch_num, batch in enumerate(batched(pages, BATCH_SIZE)):
+        # First frame truncates partition
+        # Subsequent frames append
+        disposition = "WRITE_TRUNCATE_DATA" if batch_num == 0 else "WRITE_APPEND"
 
-    while next_cursor:
-        print("Processing page", page)
+        df = pd.concat(batch)
 
-        response = requests.get(
-            url=f"{url}&cursor={next_cursor}", headers=config["headers"]
-        )
-        next_cursor, df = process_response(response, config=config)
-
-        if len(storeDf.index) > 0:
-            storeDf = pd.concat([storeDf, df])
-        else:
-            storeDf = df
-
-        print("store length", len(storeDf.index), len(df.index))
-
-        if len(storeDf.index) == 4000:
-            write_to_bigquery(
-                client=bigquery_client,
-                dataset_id=config["dataset_id"],
-                table_name=config["table_name"],
-                df=storeDf,
-                write_disposition="WRITE_APPEND",
-            )
-
-            storeDf = pd.DataFrame([])
-
-        page += 1
-
-    if len(storeDf.index) > 0:
+        processed_df = process_dataframe(df)
         write_to_bigquery(
             client=bigquery_client,
             dataset_id=config["dataset_id"],
             table_name=config["table_name"],
-            df=storeDf,
-            write_disposition="WRITE_APPEND",
+            df=processed_df,
+            write_disposition=disposition,
         )
-
-    print("count", page, page * 500)
 
 
 if __name__ == "__main__":
