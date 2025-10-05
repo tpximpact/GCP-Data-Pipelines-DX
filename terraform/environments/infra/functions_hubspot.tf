@@ -170,7 +170,7 @@ resource "google_cloudfunctions_function" "hubspot_deals_stages_pipeline" {
  https_trigger_security_level = "SECURE_ALWAYS"
  event_trigger {
    event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-   resource   = google_pubsub_topic.cloud_function_trigger_tester.id
+   resource   = google_pubsub_topic.cloud_function_every_twelve_hours_trigger.id
  }
 
  environment_variables = {
