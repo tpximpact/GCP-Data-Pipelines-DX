@@ -10,6 +10,7 @@ from data_pipeline_tools.util import (
 from data_pipeline_tools.auth import access_secret_version
 from datetime import datetime, timezone
 
+
 project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
 
 if not project_id:
@@ -78,7 +79,7 @@ def main(data: dict, context: dict = None):
         df["unique_id"] = df["id"].astype(str) + "-" + df["updated_at"].astype(str)
         df["import_date"] = import_date
 
-        write_to_bigquery(config, df, "WRITE_TRUNCATE")
+        write_to_bigquery(config, df, "WRITE_TRUNCATE_DATA")
 
     except ApiException as e:
         print("Exception when calling basic_api->get_page: %s\n" % e)

@@ -8,11 +8,9 @@ from data_pipeline_tools.util import (
 )
 from hubspot import HubSpot
 from hubspot.crm.pipelines import ApiException
+from datetime import datetime, timezone
 
-project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
-
-if not project_id:
-    project_id = "tpx-dx-dashboards"
+project_id = os.environ.get("GOOGLE_CLOUD_PROJECT") or "tpx-dx-dashboards"
 
 
 def load_config(project_id, service, ingest_time) -> dict:
@@ -53,7 +51,7 @@ def main(data: dict, context: dict = None):
 
         df = pd.DataFrame(processed_pipelines)
         df = find_and_flatten_columns(df)
-        write_to_bigquery(config, df, "WRITE_TRUNCATE")
+        write_to_bigquery(config, df, "WRITE_TRUNCATE_DATA")
 
     except ApiException as e:
         print("Exception when calling pipelines_api->get_all: %s\n" % e)

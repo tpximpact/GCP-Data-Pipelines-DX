@@ -107,7 +107,7 @@ def main(data: dict, context: dict = None):
         df["associations"] = None
         df = find_and_flatten_columns(df)
 
-        write_to_bigquery(config, df, "WRITE_TRUNCATE")
+        write_to_bigquery(config, df, "WRITE_TRUNCATE_DATA")
 
     except ApiException as e:
         print("Exception when calling basic_api->get_page: %s\n" % e)
