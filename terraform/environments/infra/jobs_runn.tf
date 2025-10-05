@@ -16,7 +16,8 @@ module "runn_actuals_pipe" {
 
 resource "google_cloud_scheduler_job" "runn_actuals" {
   name = "runn-actuals-pipe-scheduler-trigger"
-  schedule = "0 2 * * * "
+  # 3am schedule to offset from all other jobs (which run at 2am)
+  schedule = "0 3 * * * "
   time_zone = "Europe/London"
   region = var.region
 
