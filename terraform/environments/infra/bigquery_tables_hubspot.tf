@@ -10,7 +10,7 @@ resource "google_bigquery_table" "hubspot_deals" {
     env = var.env
   }
 
-  deletion_protection = false
+  deletion_protection = true
 
   encryption_configuration {
     kms_key_name = google_kms_crypto_key.bigquery_key.id
@@ -29,7 +29,7 @@ resource "google_bigquery_table" "hubspot_deals_stages" {
     env = var.env
   }
 
-  deletion_protection = false
+  deletion_protection = true
 
   encryption_configuration {
     kms_key_name = google_kms_crypto_key.bigquery_key.id
@@ -48,7 +48,7 @@ resource "google_bigquery_table" "hubspot_companies" {
     env = var.env
   }
 
-  deletion_protection = false
+  deletion_protection = true
 
   encryption_configuration {
     kms_key_name = google_kms_crypto_key.bigquery_key.id
