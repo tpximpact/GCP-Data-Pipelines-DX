@@ -1,82 +1,95 @@
 import os
 import pandas as pd
-import requests
 
-from data_pipeline_tools.auth import runn_headers
+from datetime import datetime, timezone
+from data_pipeline_tools.auth import runn_headers, access_secret_version
 
 from data_pipeline_tools.bigquery_helpers import bigquery_client_get, write_to_bigquery
+from data_pipeline_tools.util import target_daily_partition
 
-from data_pipeline_tools.runn_tools import handle_runn_rate_limits
+from data_pipeline_tools.runn_tools import reference_value_get
+from data_pipeline_tools.runn_tools import fetch_all
+from itertools import batched
 
-project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
+BATCH_SIZE = 50
 
-if not project_id:
-    project_id = "tpx-dx-dashboards"
+project_id = os.environ.get("GOOGLE_CLOUD_PROJECT") or "tpx-dx-dashboards"
 
 
 def load_config(project_id, service) -> dict:
     return {
-        "url": "https://api.runn.io/roles",
         "headers": runn_headers(project_id, service),
-        "dataset_id": (
-            os.environ.get("DATASET_ID") if os.environ.get("DATASET_ID") else "Runn_Raw"
-        ),
+        "dataset_id": (os.environ.get("DATASET_ID") or "Runn_Raw"),
         "gcp_project": project_id,
-        "table_name": (
-            os.environ.get("TABLE_NAME") if os.environ.get("TABLE_NAME") else "roles"
-        ),
-        "location": (
-            os.environ.get("TABLE_LOCATION")
-            if os.environ.get("TABLE_LOCATION")
-            else "europe-west2"
-        ),
+        "table_name": os.environ.get("TABLE_NAME") or "roles",
+        "location": (os.environ.get("TABLE_LOCATION") or "europe-west2"),
         "service": service,
     }
 
 
-def main(data: dict, context):
-    service = "Data Pipeline - Runn roles"
-    config = load_config(project_id, service)
-    roles = []
-    next_cursor = ""
+def date_pd_timestamp(dateString):
+    return pd.Timestamp(dateString)
 
-    while True:
-        url = config["url"] + "?cursor=" + next_cursor if next_cursor else config["url"]
-        print("getting page", url)
 
-        response = requests.get(url=url, headers=config["headers"])
+def spent_date_pd_timestamp(dateString):
+    return pd.Timestamp(f"{dateString}T00:00:00Z")
 
-        if response.status_code == 200:
-            data = response.json()
-            roles.extend(data.get("values", []))
-            next_cursor = data.get("nextCursor")
 
-            if not next_cursor:
-                break
-            else:
-                handle_runn_rate_limits(response)
-
-        else:
-            raise Exception(
-                f"Failed to fetch roles: {response.status_code}, {response.text}"
-            )
-
-    df = pd.DataFrame(roles)
+def process_dataframe(df):
+    df["id"] = df["id"].astype("Int64")
+    df["name"] = df["name"].astype(str)
+    df["isArchived"] = df["isArchived"].astype(bool)
+    df["defaultHourCost"] = pd.to_numeric(df["defaultHourCost"], errors="coerce")
+    df["standardRate"] = pd.to_numeric(df["standardRate"], errors="coerce")
     df["createdAt"] = df["createdAt"].apply(lambda dateString: pd.Timestamp(dateString))
     df["updatedAt"] = df["updatedAt"].apply(lambda dateString: pd.Timestamp(dateString))
-    df = df.drop(columns=["references"])
 
+    df = df[
+        [
+            "id",
+            "name",
+            "isArchived",
+            "defaultHourCost",
+            "standardRate",
+            "createdAt",
+            "updatedAt",
+        ]
+    ]
+
+    return df
+
+
+def main(data: dict, context):
+    service = "Data Pipeline - Roles"
+    now = datetime.now(timezone.utc)
+    config = load_config(project_id, service)
+
+    runn_api_token = access_secret_version(project_id, "RUNN_ACCESS_TOKEN")
     bigquery_client = bigquery_client_get(location=config["location"])
 
-    write_to_bigquery(
-        client=bigquery_client,
-        dataset_id=config["dataset_id"],
-        table_name=config["table_name"],
-        df=df,
-        write_disposition="WRITE_TRUNCATE",
+    pages = fetch_all(
+        token=runn_api_token,
+        base_url="https://api.runn.io/roles/",
+        service=service,
+        # Max page_size for /roles is 200
+        page_size=200,
     )
 
-    print(f"Total number of roles fetched: {len(df)}")
+    for batch_num, batch in enumerate(batched(pages, BATCH_SIZE)):
+        # First frame truncates partition
+        # Subsequent frames append
+        disposition = "WRITE_TRUNCATE_DATA" if batch_num == 0 else "WRITE_APPEND"
+
+        df = pd.concat(batch)
+        processed_df = process_dataframe(df)
+
+        write_to_bigquery(
+            client=bigquery_client,
+            dataset_id=config["dataset_id"],
+            table_name=target_daily_partition(config["table_name"], now),
+            df=processed_df,
+            write_disposition=disposition,
+        )
 
 
 if __name__ == "__main__":
