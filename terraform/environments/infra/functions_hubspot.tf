@@ -32,7 +32,7 @@
 #
 #   event_trigger {
 #     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-#     resource   = google_pubsub_topic.cloud_function_every_twelve_hours_trigger.id
+#     resource   = google_pubsub_topic.cloud_function_2am_trigger.id
 #   }
 #
 #   labels = {
@@ -80,7 +80,7 @@ resource "google_cloudfunctions_function" "hubspot_deals" {
  https_trigger_security_level = "SECURE_ALWAYS"
  event_trigger {
    event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-   resource   = google_pubsub_topic.cloud_function_every_twelve_hours_trigger.id
+   resource   = google_pubsub_topic.cloud_function_2am_trigger.id
  }
 
  environment_variables = {
@@ -125,7 +125,7 @@ resource "google_cloudfunctions_function" "hubspot_companies" {
  https_trigger_security_level = "SECURE_ALWAYS"
  event_trigger {
    event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-   resource   = google_pubsub_topic.cloud_function_every_twelve_hours_trigger.id
+   resource   = google_pubsub_topic.cloud_function_2am_trigger.id
  }
 
  environment_variables = {
@@ -170,7 +170,7 @@ resource "google_cloudfunctions_function" "hubspot_deals_stages_pipeline" {
  https_trigger_security_level = "SECURE_ALWAYS"
  event_trigger {
    event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-   resource   = google_pubsub_topic.cloud_function_every_twelve_hours_trigger.id
+   resource   = google_pubsub_topic.cloud_function_2am_trigger.id
  }
 
  environment_variables = {

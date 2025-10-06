@@ -31,7 +31,7 @@ resource "google_cloudfunctions_function" "hibob_time_off" {
   https_trigger_security_level = "SECURE_ALWAYS"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = google_pubsub_topic.cloud_function_trigger_hot.id
+    resource   = google_pubsub_topic.cloud_function_2am_trigger.id
   }
 
   environment_variables = {

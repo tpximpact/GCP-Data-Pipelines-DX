@@ -32,7 +32,7 @@ resource "google_cloudfunctions_function" "runn_assignments" {
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = google_pubsub_topic.cloud_function_nightly_trigger.id
+    resource   = google_pubsub_topic.cloud_function_2am_trigger.id
   }
 
   labels = {
@@ -131,7 +131,7 @@ resource "google_cloudfunctions_function" "runn_clients" {
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = google_pubsub_topic.cloud_function_nightly_trigger.id
+    resource   = google_pubsub_topic.cloud_function_2am_trigger.id
   }
 
   labels = {
@@ -180,7 +180,7 @@ resource "google_cloudfunctions_function" "runn_contracts" {
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = google_pubsub_topic.cloud_function_nightly_trigger.id
+    resource   = google_pubsub_topic.cloud_function_2am_trigger.id
   }
 
   labels = {
@@ -229,7 +229,7 @@ resource "google_cloudfunctions_function" "runn_people" {
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = google_pubsub_topic.cloud_function_nightly_trigger.id
+    resource   = google_pubsub_topic.cloud_function_2am_trigger.id
   }
 
   labels = {
@@ -278,7 +278,7 @@ resource "google_cloudfunctions_function" "runn_projects" {
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = google_pubsub_topic.cloud_function_nightly_trigger.id
+    resource   = google_pubsub_topic.cloud_function_2am_trigger.id
   }
 
   labels = {
@@ -327,7 +327,7 @@ resource "google_cloudfunctions_function" "runn_public_holidays" {
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = google_pubsub_topic.cloud_function_nightly_trigger.id
+    resource   = google_pubsub_topic.cloud_function_2am_trigger.id
   }
 
   labels = {
@@ -426,7 +426,7 @@ resource "google_cloudfunctions_function" "rate_cards" {
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = google_pubsub_topic.cloud_function_nightly_trigger.id
+    resource   = google_pubsub_topic.cloud_function_2am_trigger.id
   }
 
   labels = {
@@ -476,7 +476,7 @@ resource "google_cloudfunctions_function" "runn_roles" {
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = google_pubsub_topic.cloud_function_nightly_trigger.id
+    resource   = google_pubsub_topic.cloud_function_2am_trigger.id
   }
 
   labels = {
@@ -525,7 +525,7 @@ resource "google_cloudfunctions_function" "runn_teams" {
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = google_pubsub_topic.cloud_function_nightly_trigger.id
+    resource   = google_pubsub_topic.cloud_function_2am_trigger.id
   }
 
   labels = {

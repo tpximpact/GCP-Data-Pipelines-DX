@@ -32,11 +32,8 @@ resource "google_cloud_scheduler_job" "runn_actuals" {
    oauth_token {
      service_account_email = var.serviceaccount
      scope = "https://www.googleapis.com/auth/cloud-platform"
-
    }
   }
-
-
 }
 
 # --------------------------actuals--------------------------------\
