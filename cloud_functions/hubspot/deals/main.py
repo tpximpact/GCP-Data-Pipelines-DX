@@ -112,11 +112,12 @@ def process_dataframe(df):
     df["properties_moved_to_runn_"] = (
         df["properties"].str.get("moved_to_runn_").astype(str)
     )
-    df["properties_pipeline"] = pd.to_numeric(
-        df["properties"].str.get("pipeline"), errors="coerce"
-    ).astype("Int64")
+    df["properties_pipeline"] = df["properties"].str.get("pipeline").astype(str)
     df["properties_project_duration"] = pd.to_numeric(
         df["properties"].str.get("project_duration"), errors="coerce"
+    )
+    df["properties_work_start_date"] = (
+        df["properties"].str.get("work_start_date").apply(pd.Timestamp)
     )
     df["properties_work_type_2"] = df["properties"].str.get("work_type_2").astype(str)
     df["properties_work_type_3__dx_new_"] = (
@@ -145,6 +146,7 @@ def process_dataframe(df):
             "properties_moved_to_runn_",
             "properties_pipeline",
             "properties_project_duration",
+            "properties_work_start_date",
             "properties_work_type_2",
             "properties_work_type_3__dx_new_",
             "associations_company",

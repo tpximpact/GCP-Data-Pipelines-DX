@@ -70,7 +70,7 @@ resource "google_bigquery_table" "hubspot_deals" {
     },
     {
       "name": "properties_pipeline",
-      "type": "INTEGER",
+      "type": "STRING",
       "mode": "NULLABLE"
     },
     {
