@@ -89,7 +89,6 @@ def main(data: dict, context: dict = None):
                 "id",
                 "archived",
                 "archived_at",
-                "properties_createdate",
                 "properties_name",
                 "unique_id",
                 "created_at",
