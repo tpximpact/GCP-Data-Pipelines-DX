@@ -68,7 +68,6 @@ def main(data: dict, context: dict = None):
     api_client = HubSpot(access_token=hubspot_token)
 
     now = datetime.now(timezone.utc)
-    import_date = now.strftime("%Y-%m-%dT%H:%M:%SZ")
     config = load_config(project_id, service, now)
 
     try:
@@ -76,8 +75,28 @@ def main(data: dict, context: dict = None):
         df = pd.DataFrame(deals)
 
         df = find_and_flatten_columns(df)
+        df["id"] = df["id"].astype("Int64")
+        df["archived"] = df["archived"].astype(bool)
+        df["archived_at"] = df["archived_at"].apply(pd.Timestamp)
+        df["properties_name"] = df["properties_name"].astype(str)
         df["unique_id"] = df["id"].astype(str) + "-" + df["updated_at"].astype(str)
-        df["import_date"] = import_date
+        df["created_at"] = df["created_at"].apply(pd.Timestamp)
+        df["updated_at"] = df["updated_at"].apply(pd.Timestamp)
+        df["import_date"] = pd.Timestamp(now)
+
+        df = df[
+            [
+                "id",
+                "archived",
+                "archived_at",
+                "properties_createdate",
+                "properties_name",
+                "unique_id",
+                "created_at",
+                "updated_at",
+                "import_date",
+            ]
+        ]
 
         write_to_bigquery(config, df, "WRITE_TRUNCATE_DATA")
 

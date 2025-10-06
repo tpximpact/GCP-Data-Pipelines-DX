@@ -25,6 +25,38 @@ def load_config(project_id, service, ingest_time) -> dict:
     }
 
 
+def process_dataframe(df):
+    df["id"] = df["id"].astype(str)
+    df["archived"] = df["archived"].astype(bool)
+    df["archived_at"] = df["archived_at"].apply(pd.Timestamp)
+    df["label"] = df["label"].astype(str)
+    df["pipeline_id"] = df["pipeline_id"].astype(str)
+    df["pipeline_title"] = df["pipeline_title"].astype(str)
+    df["metadata_isClosed"] = df["metadata_isClosed"].astype(bool)
+    df["metadata_probability"] = pd.to_numeric(
+        df["metadata_probability"], errors="coerce"
+    )
+    df["created_at"] = df["created_at"].apply(pd.Timestamp)
+    df["updated_at"] = df["updated_at"].apply(pd.Timestamp)
+
+    df = df[
+        [
+            "id",
+            "archived",
+            "archived_at",
+            "label",
+            "pipeline_id",
+            "pipeline_title",
+            "metadata_isClosed",
+            "metadata_probability",
+            "created_at",
+            "updated_at",
+        ]
+    ]
+
+    return df
+
+
 def main(data: dict, context: dict = None):
     service = "Data Pipeline - HubSpot deals"
     now = datetime.now(timezone.utc)
@@ -51,6 +83,7 @@ def main(data: dict, context: dict = None):
 
         df = pd.DataFrame(processed_pipelines)
         df = find_and_flatten_columns(df)
+        df = process_dataframe(df)
         write_to_bigquery(config, df, "WRITE_TRUNCATE_DATA")
 
     except ApiException as e:
