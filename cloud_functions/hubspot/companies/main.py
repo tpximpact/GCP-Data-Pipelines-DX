@@ -29,6 +29,8 @@ def fetch_all_companies(api_client):
                 properties=[
                     "name",
                     "createdate",
+                    "sector_team",
+                    "sub_sector",
                 ],
             )
             all_deals.extend([x.to_dict() for x in response.results])
@@ -79,6 +81,9 @@ def main(data: dict, context: dict = None):
         df["archived"] = df["archived"].astype(bool)
         df["archived_at"] = df["archived_at"].apply(pd.Timestamp)
         df["properties_name"] = df["properties_name"].astype(str)
+        df["properties_sector_team"] = df["properties_sector_team"].astype(str)
+        df["properties_sub_sector"] = df["properties_sub_sector"].astype(str)
+
         df["unique_id"] = df["id"].astype(str) + "-" + df["updated_at"].astype(str)
         df["created_at"] = df["created_at"].apply(pd.Timestamp)
         df["updated_at"] = df["updated_at"].apply(pd.Timestamp)
@@ -90,6 +95,8 @@ def main(data: dict, context: dict = None):
                 "archived",
                 "archived_at",
                 "properties_name",
+                "properties_sub_sector",
+                "properties_sector_team",
                 "unique_id",
                 "created_at",
                 "updated_at",

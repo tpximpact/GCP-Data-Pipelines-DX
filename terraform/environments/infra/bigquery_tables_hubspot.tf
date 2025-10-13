@@ -234,6 +234,16 @@ resource "google_bigquery_table" "hubspot_companies" {
       "mode": "NULLABLE"
     },
     {
+      "name": "properties_sector_team",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "properties_sub_sector",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
       "name": "unique_id",
       "type": "STRING",
       "mode": "NULLABLE"
