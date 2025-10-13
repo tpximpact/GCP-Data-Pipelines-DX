@@ -266,3 +266,57 @@ resource "google_bigquery_table" "hubspot_companies" {
     kms_key_name = google_kms_crypto_key.bigquery_key.id
   }
 }
+
+resource "google_bigquery_table" "hubspot_pipelines" {
+  dataset_id = google_bigquery_dataset.hubspot_raw.dataset_id
+  table_id   = "hubspot_pipelines"
+
+  time_partitioning {
+    type = "DAY"
+  }
+  
+  schema = <<EOF
+  [
+    {
+      "name": "id",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "archived",
+      "type": "BOOLEAN",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "archived_at",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "label",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "created_at",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "updated_at",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    }
+  ]
+  EOF
+
+  labels = {
+    env = var.env
+  }
+
+  deletion_protection = true
+
+  encryption_configuration {
+    kms_key_name = google_kms_crypto_key.bigquery_key.id
+  }
+}
