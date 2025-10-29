@@ -573,6 +573,23 @@ resource "google_bigquery_table" "runn_projects" {
       "name": "projectType",
       "type": "STRING",
       "mode": "NULLABLE"
+    },
+    {
+      "name": "tags",
+      "type": "RECORD",
+      "mode": "REPEATED",
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "mode": "NULLABLE"
+        },
+        {
+          "name": "name",
+          "type": "STRING",
+          "mode": "NULLABLE"
+        }
+      ]
     }
   ]
   EOF

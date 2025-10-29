@@ -79,8 +79,11 @@ def process_dataframe(df):
     df["jobNumber"] = df["customFields"].apply(
         lambda customFields: job_number_get(customFields["text"])
     )
+    # Ignore projectType
     df["projectType"] = df["tags"].apply(get_first_project_tag)
-    df = df.drop(columns=["references", "customFields", "tags"])
+    df["tags"] = df["tags"].apply(lambda tags: tags if tags is not None else [])
+    df = df.drop(columns=["references", "customFields"])
+
 
     return df
 
