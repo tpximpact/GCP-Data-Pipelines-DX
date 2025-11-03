@@ -139,3 +139,5 @@ dmypy.json
 
 # docker
 docker-compose.override.yml
+mount_config
+mount_scracth
