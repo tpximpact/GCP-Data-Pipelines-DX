@@ -21,3 +21,4 @@ RUN cd ~/Python-3.12.0 && make altinstall
 
 RUN pip3.12 install poetry==1.4.2
 RUN pip3.12 install --upgrade pip
+RUN pip3.12 install uv

@@ -1,0 +1,4 @@
+# Don't upload to gcloud
+
+# No local env vars
+.env

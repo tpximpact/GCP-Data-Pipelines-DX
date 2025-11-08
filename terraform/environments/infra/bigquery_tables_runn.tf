@@ -380,6 +380,74 @@ resource "google_bigquery_table" "runn_contracts" {
   }
 }
 
+
+
+# --------------------------other project expenses table --------------------------------\
+resource "google_bigquery_table" "runn_other_project_expenses" {
+  dataset_id = google_bigquery_dataset.runn_raw.dataset_id
+  table_id   = "other_project_expenses"
+
+  time_partitioning {
+    type = "DAY"
+  }
+
+  schema = <<EOF
+  [
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "projectId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "cost",
+      "type": "FLOAT",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "charge",
+      "type": "FLOAT",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "name",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "date",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "createdAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "updatedAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    }
+  ]
+  EOF
+
+
+  labels = {
+    env = var.env
+  }
+
+  deletion_protection = true
+
+  encryption_configuration {
+    kms_key_name = google_kms_crypto_key.bigquery_key.id
+  }
+}
+
 # --------------------------people table --------------------------------\
 resource "google_bigquery_table" "runn_people" {
   dataset_id = google_bigquery_dataset.runn_raw.dataset_id
@@ -442,6 +510,63 @@ resource "google_bigquery_table" "runn_people" {
         "mode": "NULLABLE"
         }
       ]
+    },
+    {
+      "name": "createdAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "updatedAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    }
+  ]
+  EOF
+
+
+  labels = {
+    env = var.env
+  }
+
+  deletion_protection = true
+
+  encryption_configuration {
+    kms_key_name = google_kms_crypto_key.bigquery_key.id
+  }
+}
+
+
+# --------------------------placeholders table --------------------------------\
+resource "google_bigquery_table" "runn_placeholders" {
+  dataset_id = google_bigquery_dataset.runn_raw.dataset_id
+  table_id   = "placeholders"
+
+  time_partitioning {
+    type = "DAY"
+  }
+
+  schema = <<EOF
+  [
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "firstName",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "lastName",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "isArchived",
+      "type": "BOOLEAN",
+      "mode": "NULLABLE"
     },
     {
       "name": "createdAt",
@@ -942,3 +1067,315 @@ resource "google_bigquery_table" "runn_teams" {
 }
 
 
+# --------------------------time-offs-holidays table --------------------------------\
+resource "google_bigquery_table" "runn_time_offs_holidays" {
+  dataset_id = google_bigquery_dataset.runn_raw.dataset_id
+  table_id   = "time_offs_holidays"
+
+  time_partitioning {
+    type = "DAY"
+  }
+
+  schema = <<EOF
+  [
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "personId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "startDate",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "endDate",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "note",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "createdAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "updatedAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "minutesPerDay",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "holidayId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    }
+  ]
+  EOF
+
+  labels = {
+    env = var.env
+  }
+
+  deletion_protection = true
+
+  encryption_configuration {
+    kms_key_name = google_kms_crypto_key.bigquery_key.id
+  }
+}
+
+# --------------------------time-offs-leave table --------------------------------\
+resource "google_bigquery_table" "runn_time_offs_leave" {
+  dataset_id = google_bigquery_dataset.runn_raw.dataset_id
+  table_id   = "time_offs_leave"
+
+  time_partitioning {
+    type = "DAY"
+  }
+
+  schema = <<EOF
+  [
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "personId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "startDate",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "endDate",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "note",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "createdAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "updatedAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "minutesPerDay",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    }
+  ]
+  EOF
+
+  labels = {
+    env = var.env
+  }
+
+  deletion_protection = true
+
+  encryption_configuration {
+    kms_key_name = google_kms_crypto_key.bigquery_key.id
+  }
+}
+
+
+# --------------------------time-offs-rostered-days-off table --------------------------------\
+resource "google_bigquery_table" "runn_time_offs_rostered_days_off" {
+  dataset_id = google_bigquery_dataset.runn_raw.dataset_id
+  table_id   = "time_offs_rostered_days_off"
+
+  time_partitioning {
+    type = "DAY"
+  }
+
+  schema = <<EOF
+  [
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "personId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "startDate",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "endDate",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "note",
+      "type": "STRING",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "createdAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "updatedAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "minutesPerDay",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    }
+  ]
+  EOF
+
+  labels = {
+    env = var.env
+  }
+
+  deletion_protection = true
+
+  encryption_configuration {
+    kms_key_name = google_kms_crypto_key.bigquery_key.id
+  }
+}
+
+
+
+# ---------------------------Per project rates --------------------------------\
+resource "google_bigquery_table" "runn_per_project_rates" {
+  dataset_id = google_bigquery_dataset.runn_raw.dataset_id
+  table_id   = "per_project_rates"
+
+  time_partitioning {
+    type = "DAY"
+  }
+
+  schema = <<EOF
+  [
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "projectId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "roleId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "rate",
+      "type": "FLOAT",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "createdAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "updatedAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    }
+  ]
+  EOF
+
+  labels = {
+    env = var.env
+  }
+
+  deletion_protection = true
+
+  encryption_configuration {
+    kms_key_name = google_kms_crypto_key.bigquery_key.id
+  }
+}
+
+# ---------------------------Per project Budget roles --------------------------------\
+resource "google_bigquery_table" "runn_per_project_budget_roles" {
+  dataset_id = google_bigquery_dataset.runn_raw.dataset_id
+  table_id   = "per_project_budget_roles"
+
+  time_partitioning {
+    type = "DAY"
+  }
+
+  schema = <<EOF
+  [
+    {
+      "name": "projectId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "roleId",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },    
+    {
+      "name": "estimatedMinutes",
+      "type": "INTEGER",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "estimatedBudget",
+      "type": "FLOAT",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "createdAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    },
+    {
+      "name": "updatedAt",
+      "type": "TIMESTAMP",
+      "mode": "NULLABLE"
+    }
+  ]
+  EOF
+
+  labels = {
+    env = var.env
+  }
+
+  deletion_protection = true
+
+  encryption_configuration {
+    kms_key_name = google_kms_crypto_key.bigquery_key.id
+  }
+}
