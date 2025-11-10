@@ -13,3 +13,7 @@ variable "env" {
 variable "serviceaccount" {
   default = "tpx-dx-dashboards@appspot.gserviceaccount.com"
 }
+
+variable "pipelines_serviceaccount" {
+  default = "dashboard-pipelines@tpx-dx-dashboards.iam.gserviceaccount.com"
+}

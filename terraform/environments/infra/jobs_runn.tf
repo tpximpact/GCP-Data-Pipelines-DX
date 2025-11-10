@@ -291,3 +291,40 @@ resource "google_cloud_scheduler_job" "runn_time_offs_rostered_days_off" {
    }
   }
 }
+
+
+
+resource "google_cloud_run_v2_job" "hello_python" {
+  # Only google-beta provider supports gcs container mount.
+  name = "hello-python"
+  location = var.region
+
+  deletion_protection =  false
+
+  template {
+    task_count = 1
+    template {
+      service_account = var.pipelines_serviceaccount
+      containers {
+        name = "python"
+        image = data.google_artifact_registry_docker_image.hello_python.self_link
+
+        working_dir = "/app"
+        command = ["uv", "run", "python", "-m", "main"]
+      }
+    }
+  }
+}
+
+data "google_artifact_registry_docker_image" "hello_python" {
+  location = google_artifact_registry_repository.cloud_run_images.location
+  repository_id = google_artifact_registry_repository.cloud_run_images.repository_id
+  image_name = "hello-python"
+}
+
+resource "google_artifact_registry_repository" "cloud_run_images" {
+  location = var.region
+  repository_id = "cloud-run-images"
+  description = "Repository for cloud run docker images"
+  format = "DOCKER"
+}
