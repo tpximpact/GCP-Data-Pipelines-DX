@@ -319,12 +319,45 @@ resource "google_cloud_run_v2_job" "hello_python" {
 data "google_artifact_registry_docker_image" "hello_python" {
   location = google_artifact_registry_repository.cloud_run_images.location
   repository_id = google_artifact_registry_repository.cloud_run_images.repository_id
-  image_name = "hello-python"
+  image_name = "hello-python@${docker_registry_image.hello_python.sha256_digest}"
 }
+
 
 resource "google_artifact_registry_repository" "cloud_run_images" {
   location = var.region
   repository_id = "cloud-run-images"
   description = "Repository for cloud run docker images"
   format = "DOCKER"
+}
+
+
+resource "docker_registry_image" "hello_python" {
+  name = docker_image.hello_python.name
+  keep_remotely = true
+
+  triggers = {
+    image_sha = docker_image.hello_python.repo_digest
+  }
+}
+
+locals {
+  hello_python = {
+  context_dir = "${path.root}/../../../cloud_run_jobs/test/hello_python"
+  dockerfile_path = "${path.root}/../../../docker-images/jobs.Dockerfile"
+  }
+}
+
+resource "docker_image" "hello_python" {
+  name = "${var.region}-docker.pkg.dev/${var.project}/${google_artifact_registry_repository.cloud_run_images.repository_id}/hello-python"
+  build {
+    context = local.hello_python.context_dir
+    dockerfile = local.hello_python.dockerfile_path
+  }
+
+  force_remove = true
+
+  triggers = {
+        dir_sha1 = sha1(join("", [for f in fileset(local.hello_python.context_dir, "**") : filesha1("${local.hello_python.context_dir}/${f}")]))
+
+  }
 }
