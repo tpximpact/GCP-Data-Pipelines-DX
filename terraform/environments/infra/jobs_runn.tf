@@ -1,17 +1,5 @@
 # Custom gcloud provider to run gcloud cli commands
 
-module "runn_actuals_pipe" {
- source  = "terraform-google-modules/gcloud/google"
- version = "~> 4.0"
-
- platform = "linux"
-
- create_cmd_entrypoint = "${path.module}/scripts/runn_pipe.sh"
- create_cmd_body       = "create ${path.module}/../../../cloud_run_jobs/runn/actuals runn-actuals-pipe"
-
- destroy_cmd_entrypoint = "${path.module}/scripts/runn_pipe.sh"
- destroy_cmd_body       = "destroy runn-actuals-pipe"
-}
 
 
 resource "google_cloud_scheduler_job" "runn_actuals" {
@@ -36,18 +24,6 @@ resource "google_cloud_scheduler_job" "runn_actuals" {
   }
 }
 
-module "runn_project_budget_roles_pipe" {
- source  = "terraform-google-modules/gcloud/google"
- version = "~> 4.0"
-
- platform = "linux"
-
- create_cmd_entrypoint = "${path.module}/scripts/runn_pipe.sh"
- create_cmd_body       = "create ${path.module}/../../../cloud_run_jobs/runn/project-budget-roles runn-project-budget-roles-pipe"
-
- destroy_cmd_entrypoint = "${path.module}/scripts/runn_pipe.sh"
- destroy_cmd_body       = "destroy runn-project-budget-roles-pipe"
-}
 
 
 resource "google_cloud_scheduler_job" "runn_project_budget_roles" {
@@ -73,18 +49,7 @@ resource "google_cloud_scheduler_job" "runn_project_budget_roles" {
 }
 
 
-module "runn_per_project_rates_pipe" {
- source  = "terraform-google-modules/gcloud/google"
- version = "~> 4.0"
 
- platform = "linux"
-
- create_cmd_entrypoint = "${path.module}/scripts/runn_pipe.sh"
- create_cmd_body       = "create ${path.module}/../../../cloud_run_jobs/runn/per_project_rates runn-per-project-rates-pipe"
-
- destroy_cmd_entrypoint = "${path.module}/scripts/runn_pipe.sh"
- destroy_cmd_body       = "destroy runn-per-project-rates-pipe"
-}
 
 
 resource "google_cloud_scheduler_job" "runn_per_project_rates" {
@@ -110,18 +75,7 @@ resource "google_cloud_scheduler_job" "runn_per_project_rates" {
 }
 
 
-module "runn_placeholders_pipe" {
- source  = "terraform-google-modules/gcloud/google"
- version = "~> 4.0"
 
- platform = "linux"
-
- create_cmd_entrypoint = "${path.module}/scripts/runn_pipe.sh"
- create_cmd_body       = "create ${path.module}/../../../cloud_run_jobs/runn/placeholders runn-placeholders-pipe"
-
- destroy_cmd_entrypoint = "${path.module}/scripts/runn_pipe.sh"
- destroy_cmd_body       = "destroy runn-placeholders-pipe"
-}
 
 
 resource "google_cloud_scheduler_job" "runn_placeholders" {
@@ -146,18 +100,7 @@ resource "google_cloud_scheduler_job" "runn_placeholders" {
   }
 }
 
-module "runn_project_other_expenses_pipe" {
- source  = "terraform-google-modules/gcloud/google"
- version = "~> 4.0"
 
- platform = "linux"
-
- create_cmd_entrypoint = "${path.module}/scripts/runn_pipe.sh"
- create_cmd_body       = "create ${path.module}/../../../cloud_run_jobs/runn/project_other_expenses runn-project-other-expenses-pipe"
-
- destroy_cmd_entrypoint = "${path.module}/scripts/runn_pipe.sh"
- destroy_cmd_body       = "destroy runn-project-other-expenses-pipe"
-}
 
 
 resource "google_cloud_scheduler_job" "runn_project_other_expenses" {
@@ -183,18 +126,7 @@ resource "google_cloud_scheduler_job" "runn_project_other_expenses" {
 }
 
 
-module "runn_time_offs_holidays_pipe" {
- source  = "terraform-google-modules/gcloud/google"
- version = "~> 4.0"
 
- platform = "linux"
-
- create_cmd_entrypoint = "${path.module}/scripts/runn_pipe.sh"
- create_cmd_body       = "create ${path.module}/../../../cloud_run_jobs/runn/time_offs_holidays runn-time-offs-holidays-pipe"
-
- destroy_cmd_entrypoint = "${path.module}/scripts/runn_pipe.sh"
- destroy_cmd_body       = "destroy runn-time-offs-holidays-pipe"
-}
 
 
 resource "google_cloud_scheduler_job" "runn_time_offs_holidays" {
@@ -217,19 +149,6 @@ resource "google_cloud_scheduler_job" "runn_time_offs_holidays" {
      scope = "https://www.googleapis.com/auth/cloud-platform"
    }
   }
-}
-
-module "runn_time_offs_leave_pipe" {
- source  = "terraform-google-modules/gcloud/google"
- version = "~> 4.0"
-
- platform = "linux"
-
- create_cmd_entrypoint = "${path.module}/scripts/runn_pipe.sh"
- create_cmd_body       = "create ${path.module}/../../../cloud_run_jobs/runn/time_offs_leave runn-time-offs-leave-pipe"
-
- destroy_cmd_entrypoint = "${path.module}/scripts/runn_pipe.sh"
- destroy_cmd_body       = "destroy runn-time-offs-leave-pipe"
 }
 
 
@@ -256,18 +175,7 @@ resource "google_cloud_scheduler_job" "runn_time_offs_leave" {
 }
 
 
-module "runn_time_offs_rostered_days_off_pipe" {
- source  = "terraform-google-modules/gcloud/google"
- version = "~> 4.0"
 
- platform = "linux"
-
- create_cmd_entrypoint = "${path.module}/scripts/runn_pipe.sh"
- create_cmd_body       = "create ${path.module}/../../../cloud_run_jobs/runn/time_offs_rostered_days_off runn-time-offs-rostered-days-off-pipe"
-
- destroy_cmd_entrypoint = "${path.module}/scripts/runn_pipe.sh"
- destroy_cmd_body       = "destroy runn-time-offs-rostered-days-off-pipe"
-}
 
 
 resource "google_cloud_scheduler_job" "runn_time_offs_rostered_days_off" {
@@ -316,10 +224,226 @@ resource "google_cloud_run_v2_job" "hello_python" {
   }
 }
 
+resource "google_cloud_run_v2_job" "runn_actuals" {
+  name     = "runn-actuals-pipe"
+  location = var.region
+
+  deletion_protection = false
+
+  template {
+    task_count = 1
+    template {
+      service_account = var.pipelines_serviceaccount
+      containers {
+        name  = "python"
+        image = data.google_artifact_registry_docker_image.runn_actuals.self_link
+
+        working_dir = "/app"
+        command     = ["uv", "run", "python", "-m", "src.main"]
+      }
+    }
+  }
+}
+
+resource "google_cloud_run_v2_job" "runn_project_budget_roles" {
+  name     = "runn-project-budget-roles-pipe"
+  location = var.region
+
+  deletion_protection = false
+
+  template {
+    task_count = 1
+    template {
+      service_account = var.pipelines_serviceaccount
+      containers {
+        name  = "python"
+        image = data.google_artifact_registry_docker_image.runn_project_budget_roles.self_link
+
+        working_dir = "/app"
+        command     = ["uv", "run", "python", "-m", "src.main"]
+      }
+    }
+  }
+}
+
+resource "google_cloud_run_v2_job" "runn_per_project_rates" {
+  name     = "runn-per-project-rates-pipe"
+  location = var.region
+
+  deletion_protection = false
+
+  template {
+    task_count = 1
+    template {
+      service_account = var.pipelines_serviceaccount
+      containers {
+        name  = "python"
+        image = data.google_artifact_registry_docker_image.runn_per_project_rates.self_link
+
+        working_dir = "/app"
+        command     = ["uv", "run", "python", "-m", "src.main"]
+      }
+    }
+  }
+}
+
+resource "google_cloud_run_v2_job" "runn_placeholders" {
+  name     = "runn-placeholders-pipe"
+  location = var.region
+
+  deletion_protection = false
+
+  template {
+    task_count = 1
+    template {
+      service_account = var.pipelines_serviceaccount
+      containers {
+        name  = "python"
+        image = data.google_artifact_registry_docker_image.runn_placeholders.self_link
+
+        working_dir = "/app"
+        command     = ["uv", "run", "python", "-m", "src.main"]
+      }
+    }
+  }
+}
+
+resource "google_cloud_run_v2_job" "runn_project_other_expenses" {
+  name     = "runn-project-other-expenses-pipe"
+  location = var.region
+
+  deletion_protection = false
+
+  template {
+    task_count = 1
+    template {
+      service_account = var.pipelines_serviceaccount
+      containers {
+        name  = "python"
+        image = data.google_artifact_registry_docker_image.runn_project_other_expenses.self_link
+
+        working_dir = "/app"
+        command     = ["uv", "run", "python", "-m", "src.main"]
+      }
+    }
+  }
+}
+
+resource "google_cloud_run_v2_job" "runn_time_offs_holidays" {
+  name     = "runn-time-offs-holidays-pipe"
+  location = var.region
+
+  deletion_protection = false
+
+  template {
+    task_count = 1
+    template {
+      service_account = var.pipelines_serviceaccount
+      containers {
+        name  = "python"
+        image = data.google_artifact_registry_docker_image.runn_time_offs_holidays.self_link
+
+        working_dir = "/app"
+        command     = ["uv", "run", "python", "-m", "src.main"]
+      }
+    }
+  }
+}
+
+resource "google_cloud_run_v2_job" "runn_time_offs_leave" {
+  name     = "runn-time-offs-leave-pipe"
+  location = var.region
+
+  deletion_protection = false
+
+  template {
+    task_count = 1
+    template {
+      service_account = var.pipelines_serviceaccount
+      containers {
+        name  = "python"
+        image = data.google_artifact_registry_docker_image.runn_time_offs_leave.self_link
+
+        working_dir = "/app"
+        command     = ["uv", "run", "python", "-m", "src.main"]
+      }
+    }
+  }
+}
+
+resource "google_cloud_run_v2_job" "runn_time_offs_rostered_days_off" {
+  name     = "runn-time-offs-rostered-days-off-pipe"
+  location = var.region
+
+  deletion_protection = false
+
+  template {
+    task_count = 1
+    template {
+      service_account = var.pipelines_serviceaccount
+      containers {
+        name  = "python"
+        image = data.google_artifact_registry_docker_image.runn_time_offs_rostered_days_off.self_link
+
+        working_dir = "/app"
+        command     = ["uv", "run", "python", "-m", "src.main"]
+      }
+    }
+  }
+}
+
 data "google_artifact_registry_docker_image" "hello_python" {
   location = google_artifact_registry_repository.cloud_run_images.location
   repository_id = google_artifact_registry_repository.cloud_run_images.repository_id
   image_name = "hello-python@${docker_registry_image.hello_python.sha256_digest}"
+}
+
+data "google_artifact_registry_docker_image" "runn_actuals" {
+  location      = google_artifact_registry_repository.cloud_run_images.location
+  repository_id = google_artifact_registry_repository.cloud_run_images.repository_id
+  image_name    = "runn-actuals-pipe@${docker_registry_image.runn_actuals.sha256_digest}"
+}
+
+data "google_artifact_registry_docker_image" "runn_project_budget_roles" {
+  location      = google_artifact_registry_repository.cloud_run_images.location
+  repository_id = google_artifact_registry_repository.cloud_run_images.repository_id
+  image_name    = "runn-project-budget-roles-pipe@${docker_registry_image.runn_project_budget_roles.sha256_digest}"
+}
+
+data "google_artifact_registry_docker_image" "runn_per_project_rates" {
+  location      = google_artifact_registry_repository.cloud_run_images.location
+  repository_id = google_artifact_registry_repository.cloud_run_images.repository_id
+  image_name    = "runn-per-project-rates-pipe@${docker_registry_image.runn_per_project_rates.sha256_digest}"
+}
+
+data "google_artifact_registry_docker_image" "runn_placeholders" {
+  location      = google_artifact_registry_repository.cloud_run_images.location
+  repository_id = google_artifact_registry_repository.cloud_run_images.repository_id
+  image_name    = "runn-placeholders-pipe@${docker_registry_image.runn_placeholders.sha256_digest}"
+}
+
+data "google_artifact_registry_docker_image" "runn_project_other_expenses" {
+  location      = google_artifact_registry_repository.cloud_run_images.location
+  repository_id = google_artifact_registry_repository.cloud_run_images.repository_id
+  image_name    = "runn-project-other-expenses-pipe@${docker_registry_image.runn_project_other_expenses.sha256_digest}"
+}
+
+data "google_artifact_registry_docker_image" "runn_time_offs_holidays" {
+  location      = google_artifact_registry_repository.cloud_run_images.location
+  repository_id = google_artifact_registry_repository.cloud_run_images.repository_id
+  image_name    = "runn-time-offs-holidays-pipe@${docker_registry_image.runn_time_offs_holidays.sha256_digest}"
+}
+
+data "google_artifact_registry_docker_image" "runn_time_offs_leave" {
+  location      = google_artifact_registry_repository.cloud_run_images.location
+  repository_id = google_artifact_registry_repository.cloud_run_images.repository_id
+  image_name    = "runn-time-offs-leave-pipe@${docker_registry_image.runn_time_offs_leave.sha256_digest}"
+}
+
+data "google_artifact_registry_docker_image" "runn_time_offs_rostered_days_off" {
+  location      = google_artifact_registry_repository.cloud_run_images.location
+  repository_id = google_artifact_registry_repository.cloud_run_images.repository_id
+  image_name    = "runn-time-offs-rostered-days-off-pipe@${docker_registry_image.runn_time_offs_rostered_days_off.sha256_digest}"
 }
 
 
@@ -340,10 +464,122 @@ resource "docker_registry_image" "hello_python" {
   }
 }
 
+resource "docker_registry_image" "runn_actuals" {
+  name          = docker_image.runn_actuals.name
+  keep_remotely = true
+
+  triggers = {
+    image_sha = docker_image.runn_actuals.repo_digest
+  }
+}
+
+resource "docker_registry_image" "runn_project_budget_roles" {
+  name          = docker_image.runn_project_budget_roles.name
+  keep_remotely = true
+
+  triggers = {
+    image_sha = docker_image.runn_project_budget_roles.repo_digest
+  }
+}
+
+resource "docker_registry_image" "runn_per_project_rates" {
+  name          = docker_image.runn_per_project_rates.name
+  keep_remotely = true
+
+  triggers = {
+    image_sha = docker_image.runn_per_project_rates.repo_digest
+  }
+}
+
+resource "docker_registry_image" "runn_placeholders" {
+  name          = docker_image.runn_placeholders.name
+  keep_remotely = true
+
+  triggers = {
+    image_sha = docker_image.runn_placeholders.repo_digest
+  }
+}
+
+resource "docker_registry_image" "runn_project_other_expenses" {
+  name          = docker_image.runn_project_other_expenses.name
+  keep_remotely = true
+
+  triggers = {
+    image_sha = docker_image.runn_project_other_expenses.repo_digest
+  }
+}
+
+resource "docker_registry_image" "runn_time_offs_holidays" {
+  name          = docker_image.runn_time_offs_holidays.name
+  keep_remotely = true
+
+  triggers = {
+    image_sha = docker_image.runn_time_offs_holidays.repo_digest
+  }
+}
+
+resource "docker_registry_image" "runn_time_offs_leave" {
+  name          = docker_image.runn_time_offs_leave.name
+  keep_remotely = true
+
+  triggers = {
+    image_sha = docker_image.runn_time_offs_leave.repo_digest
+  }
+}
+
+resource "docker_registry_image" "runn_time_offs_rostered_days_off" {
+  name          = docker_image.runn_time_offs_rostered_days_off.name
+  keep_remotely = true
+
+  triggers = {
+    image_sha = docker_image.runn_time_offs_rostered_days_off.repo_digest
+  }
+}
+
 locals {
   hello_python = {
-  context_dir = "${path.root}/../../../cloud_run_jobs/test/hello_python"
-  dockerfile_path = "${path.root}/../../../docker-images/jobs.Dockerfile"
+    context_dir      = "${path.root}/../../../cloud_run_jobs/test/hello_python"
+    dockerfile_path  = "${path.root}/../../../docker-images/jobs.Dockerfile"
+  }
+
+  runn_actuals = {
+    context_dir      = "${path.root}/../../../cloud_run_jobs/runn/actuals"
+    dockerfile_path  = "${path.root}/../../../docker-images/jobs.Dockerfile"
+  }
+
+  runn_project_budget_roles = {
+    context_dir      = "${path.root}/../../../cloud_run_jobs/runn/project_budget_roles"
+    dockerfile_path  = "${path.root}/../../../docker-images/jobs.Dockerfile"
+  }
+
+  runn_per_project_rates = {
+    context_dir      = "${path.root}/../../../cloud_run_jobs/runn/per_project_rates"
+    dockerfile_path  = "${path.root}/../../../docker-images/jobs.Dockerfile"
+  }
+
+  runn_placeholders = {
+    context_dir      = "${path.root}/../../../cloud_run_jobs/runn/placeholders"
+    dockerfile_path  = "${path.root}/../../../docker-images/jobs.Dockerfile"
+  }
+
+  runn_project_other_expenses = {
+    context_dir      = "${path.root}/../../../cloud_run_jobs/runn/project_other_expenses"
+    dockerfile_path  = "${path.root}/../../../docker-images/jobs.Dockerfile"
+  }
+
+  runn_time_offs_holidays = {
+    context_dir      = "${path.root}/../../../cloud_run_jobs/runn/time_offs_holidays"
+    dockerfile_path  = "${path.root}/../../../docker-images/jobs.Dockerfile"
+  }
+
+  runn_time_offs_leave = {
+    context_dir      = "${path.root}/../../../cloud_run_jobs/runn/time_offs_leave"
+    dockerfile_path  = "${path.root}/../../../docker-images/jobs.Dockerfile"
+  }
+
+  runn_time_offs_rostered_days_off = {
+    context_dir      = "${path.root}/../../../cloud_run_jobs/runn/time_offs_rostered_days_off"
+    dockerfile_path  = "${path.root}/../../../docker-images/jobs.Dockerfile"
   }
 }
 
@@ -359,5 +595,117 @@ resource "docker_image" "hello_python" {
   triggers = {
         dir_sha1 = sha1(join("", [for f in fileset(local.hello_python.context_dir, "**") : filesha1("${local.hello_python.context_dir}/${f}")]))
 
+  }
+}
+
+resource "docker_image" "runn_actuals" {
+  name = "${var.region}-docker.pkg.dev/${var.project}/${google_artifact_registry_repository.cloud_run_images.repository_id}/runn-actuals-pipe"
+  build {
+    context    = local.runn_actuals.context_dir
+    dockerfile = local.runn_actuals.dockerfile_path
+  }
+
+  force_remove = true
+
+  triggers = {
+    dir_sha1 = sha1(join("", [for f in fileset(local.runn_actuals.context_dir, "**") : filesha1("${local.runn_actuals.context_dir}/${f}")]))
+  }
+}
+
+resource "docker_image" "runn_project_budget_roles" {
+  name = "${var.region}-docker.pkg.dev/${var.project}/${google_artifact_registry_repository.cloud_run_images.repository_id}/runn-project-budget-roles-pipe"
+  build {
+    context    = local.runn_project_budget_roles.context_dir
+    dockerfile = local.runn_project_budget_roles.dockerfile_path
+  }
+
+  force_remove = true
+
+  triggers = {
+    dir_sha1 = sha1(join("", [for f in fileset(local.runn_project_budget_roles.context_dir, "**") : filesha1("${local.runn_project_budget_roles.context_dir}/${f}")]))
+  }
+}
+
+resource "docker_image" "runn_per_project_rates" {
+  name = "${var.region}-docker.pkg.dev/${var.project}/${google_artifact_registry_repository.cloud_run_images.repository_id}/runn-per-project-rates-pipe"
+  build {
+    context    = local.runn_per_project_rates.context_dir
+    dockerfile = local.runn_per_project_rates.dockerfile_path
+  }
+
+  force_remove = true
+
+  triggers = {
+    dir_sha1 = sha1(join("", [for f in fileset(local.runn_per_project_rates.context_dir, "**") : filesha1("${local.runn_per_project_rates.context_dir}/${f}")]))
+  }
+}
+
+resource "docker_image" "runn_placeholders" {
+  name = "${var.region}-docker.pkg.dev/${var.project}/${google_artifact_registry_repository.cloud_run_images.repository_id}/runn-placeholders-pipe"
+  build {
+    context    = local.runn_placeholders.context_dir
+    dockerfile = local.runn_placeholders.dockerfile_path
+  }
+
+  force_remove = true
+
+  triggers = {
+    dir_sha1 = sha1(join("", [for f in fileset(local.runn_placeholders.context_dir, "**") : filesha1("${local.runn_placeholders.context_dir}/${f}")]))
+  }
+}
+
+resource "docker_image" "runn_project_other_expenses" {
+  name = "${var.region}-docker.pkg.dev/${var.project}/${google_artifact_registry_repository.cloud_run_images.repository_id}/runn-project-other-expenses-pipe"
+  build {
+    context    = local.runn_project_other_expenses.context_dir
+    dockerfile = local.runn_project_other_expenses.dockerfile_path
+  }
+
+  force_remove = true
+
+  triggers = {
+    dir_sha1 = sha1(join("", [for f in fileset(local.runn_project_other_expenses.context_dir, "**") : filesha1("${local.runn_project_other_expenses.context_dir}/${f}")]))
+  }
+}
+
+resource "docker_image" "runn_time_offs_holidays" {
+  name = "${var.region}-docker.pkg.dev/${var.project}/${google_artifact_registry_repository.cloud_run_images.repository_id}/runn-time-offs-holidays-pipe"
+  build {
+    context    = local.runn_time_offs_holidays.context_dir
+    dockerfile = local.runn_time_offs_holidays.dockerfile_path
+  }
+
+  force_remove = true
+
+  triggers = {
+    dir_sha1 = sha1(join("", [for f in fileset(local.runn_time_offs_holidays.context_dir, "**") : filesha1("${local.runn_time_offs_holidays.context_dir}/${f}")]))
+  }
+}
+
+resource "docker_image" "runn_time_offs_leave" {
+  name = "${var.region}-docker.pkg.dev/${var.project}/${google_artifact_registry_repository.cloud_run_images.repository_id}/runn-time-offs-leave-pipe"
+  build {
+    context    = local.runn_time_offs_leave.context_dir
+    dockerfile = local.runn_time_offs_leave.dockerfile_path
+  }
+
+  force_remove = true
+
+  triggers = {
+    dir_sha1 = sha1(join("", [for f in fileset(local.runn_time_offs_leave.context_dir, "**") : filesha1("${local.runn_time_offs_leave.context_dir}/${f}")]))
+  }
+}
+
+resource "docker_image" "runn_time_offs_rostered_days_off" {
+  name = "${var.region}-docker.pkg.dev/${var.project}/${google_artifact_registry_repository.cloud_run_images.repository_id}/runn-time-offs-rostered-days-off-pipe"
+  build {
+    context    = local.runn_time_offs_rostered_days_off.context_dir
+    dockerfile = local.runn_time_offs_rostered_days_off.dockerfile_path
+  }
+
+  force_remove = true
+
+  triggers = {
+    dir_sha1 = sha1(join("", [for f in fileset(local.runn_time_offs_rostered_days_off.context_dir, "**") : filesha1("${local.runn_time_offs_rostered_days_off.context_dir}/${f}")]))
   }
 }

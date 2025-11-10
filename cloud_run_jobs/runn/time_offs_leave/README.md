@@ -1,7 +1,13 @@
-poetry init 
+# Runn time offs leave pipeline
 
-poetry install
+## Install dependencies
 
-poetry run python main.py
+```bash
+uv sync
+```
 
-poetry export --format=requirements.txt --output=requirements.txt --without-hashes
+## Run locally
+
+```bash
+uv run python -m src.main
+```
