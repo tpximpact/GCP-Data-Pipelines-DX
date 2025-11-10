@@ -310,7 +310,7 @@ resource "google_cloud_run_v2_job" "hello_python" {
         image = data.google_artifact_registry_docker_image.hello_python.self_link
 
         working_dir = "/app"
-        command = ["uv", "run", "python", "-m", "main"]
+        command = ["uv", "run", "python", "-m", "src.main"]
       }
     }
   }

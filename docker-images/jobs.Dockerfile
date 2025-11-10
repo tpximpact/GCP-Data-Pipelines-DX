@@ -16,5 +16,5 @@ RUN uv venv
 RUN uv sync
 
 # Run the code!
-ENTRYPOINT ["uv", "run", "python", "-m", "main"]
+ENTRYPOINT ["uv", "run", "python", "-m", "src.main"]
 
