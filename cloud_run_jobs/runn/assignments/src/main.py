@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from dotenv import load_dotenv
 import os
 from datetime import datetime, timezone
 from itertools import batched
@@ -5,25 +8,30 @@ from typing import cast
 
 import pandas as pd
 
-from data_pipeline_tools.auth import access_secret_version, runn_headers
+from data_pipeline_tools.auth import runn_headers
 from data_pipeline_tools.bigquery_helpers import bigquery_client_get, write_to_bigquery
 from data_pipeline_tools.runn_tools import fetch_all
 from data_pipeline_tools.util import target_daily_partition
 
 BATCH_SIZE = 50
-project_id = os.environ.get("GOOGLE_CLOUD_PROJECT") or "tpx-dx-dashboards"
-service = "Data Pipeline - Assignments"
+
+load_dotenv()
+
+PROJECT_ID = os.environ["GOOGLE_CLOUD_PROJECT"]
+DATASET_ID = "Runn_Raw"
+TABLE_NAME = "assignments"
+SERVICE_NAME = "Data Pipeline - Assignments"
+TABLE_LOCATION = os.environ["TABLE_LOCATION"]
+RUNN_API_TOKEN = os.environ["RUNN_API_TOKEN"]
 
 
 def load_config(project_id: str, service: str, ingest_time: datetime) -> dict:
     return {
         "headers": runn_headers(project_id, service),
-        "dataset_id": os.environ.get("DATASET_ID") or "Runn_Raw",
+        "dataset_id": DATASET_ID,
         "gcp_project": project_id,
-        "table_name": target_daily_partition(
-            os.environ.get("TABLE_NAME") or "assignments", ingest_time
-        ),
-        "location": os.environ.get("TABLE_LOCATION") or "europe-west2",
+        "table_name": target_daily_partition(TABLE_NAME, ingest_time),
+        "location": TABLE_LOCATION,
         "service": service,
     }
 
@@ -83,15 +91,14 @@ def process_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
 def main(data: dict | None = None, context: object | None = None) -> None:
     now = datetime.now(timezone.utc)
-    config = load_config(project_id, service, now)
+    config = load_config(PROJECT_ID, SERVICE_NAME, now)
 
-    runn_api_token = access_secret_version(project_id, "RUNN_ACCESS_TOKEN")
     bigquery_client = bigquery_client_get(location=config["location"])
 
     pages = fetch_all(
-        token=runn_api_token,
+        token=RUNN_API_TOKEN,
         base_url="https://api.runn.io/assignments/",
-        service=service,
+        service=SERVICE_NAME,
         page_size=200,
     )
 

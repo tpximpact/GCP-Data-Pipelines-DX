@@ -431,6 +431,26 @@ resource "google_cloud_run_v2_job" "runn_actuals" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "RUNN_API_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret = "RUNN_ACCESS_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
@@ -453,6 +473,26 @@ resource "google_cloud_run_v2_job" "runn_project_budget_roles" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name  = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name  = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "RUNN_API_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret  = "RUNN_ACCESS_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
@@ -475,6 +515,26 @@ resource "google_cloud_run_v2_job" "runn_per_project_rates" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name  = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name  = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "RUNN_API_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret  = "RUNN_ACCESS_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
@@ -497,6 +557,26 @@ resource "google_cloud_run_v2_job" "runn_placeholders" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name  = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name  = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "RUNN_API_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret  = "RUNN_ACCESS_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
@@ -519,6 +599,26 @@ resource "google_cloud_run_v2_job" "runn_project_other_expenses" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name  = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name  = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "RUNN_API_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret  = "RUNN_ACCESS_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
@@ -541,6 +641,26 @@ resource "google_cloud_run_v2_job" "runn_time_offs_holidays" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name  = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name  = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "RUNN_API_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret  = "RUNN_ACCESS_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
@@ -563,6 +683,26 @@ resource "google_cloud_run_v2_job" "runn_time_offs_leave" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name  = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name  = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "RUNN_API_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret  = "RUNN_ACCESS_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
@@ -585,6 +725,26 @@ resource "google_cloud_run_v2_job" "runn_time_offs_rostered_days_off" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name  = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name  = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "RUNN_API_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret  = "RUNN_ACCESS_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
@@ -607,6 +767,26 @@ resource "google_cloud_run_v2_job" "runn_assignments" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name  = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name  = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "RUNN_API_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret  = "RUNN_ACCESS_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
@@ -629,6 +809,26 @@ resource "google_cloud_run_v2_job" "runn_clients" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name  = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name  = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "RUNN_API_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret  = "RUNN_ACCESS_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
@@ -651,6 +851,26 @@ resource "google_cloud_run_v2_job" "runn_contracts" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name  = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name  = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "RUNN_API_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret  = "RUNN_ACCESS_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
@@ -673,6 +893,26 @@ resource "google_cloud_run_v2_job" "runn_people" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name  = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name  = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "RUNN_API_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret  = "RUNN_ACCESS_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
@@ -695,6 +935,26 @@ resource "google_cloud_run_v2_job" "runn_projects" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name  = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name  = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "RUNN_API_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret  = "RUNN_ACCESS_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
@@ -717,6 +977,26 @@ resource "google_cloud_run_v2_job" "runn_public_holidays" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name  = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name  = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "RUNN_API_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret  = "RUNN_ACCESS_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
@@ -739,6 +1019,26 @@ resource "google_cloud_run_v2_job" "runn_rate_cards" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name  = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name  = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "RUNN_API_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret  = "RUNN_ACCESS_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
@@ -761,6 +1061,26 @@ resource "google_cloud_run_v2_job" "runn_roles" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name  = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name  = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "RUNN_API_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret  = "RUNN_ACCESS_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
@@ -783,6 +1103,26 @@ resource "google_cloud_run_v2_job" "runn_teams" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name  = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name  = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "RUNN_API_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret  = "RUNN_ACCESS_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }

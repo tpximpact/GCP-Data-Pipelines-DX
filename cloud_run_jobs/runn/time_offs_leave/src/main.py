@@ -1,33 +1,42 @@
+from __future__ import annotations
+
+from dotenv import load_dotenv
 import os
-import pandas as pd
-from data_pipeline_tools.bigquery_helpers import bigquery_client_get, write_to_bigquery
-from data_pipeline_tools.auth import runn_headers, access_secret_version
-from data_pipeline_tools.util import target_daily_partition
-from data_pipeline_tools.runn_tools import fetch_all
 from datetime import datetime, timezone
 from itertools import batched
+from typing import Any, cast
 
+import pandas as pd
 
-project_id = os.environ.get("GOOGLE_CLOUD_PROJECT") or "tpx-dx-dashboards"
-service = "Data Pipeline - Time off (Leave)"
+from data_pipeline_tools.auth import runn_headers
+from data_pipeline_tools.bigquery_helpers import bigquery_client_get, write_to_bigquery
+from data_pipeline_tools.runn_tools import fetch_all
+from data_pipeline_tools.util import target_daily_partition
 
 BATCH_SIZE = 50
 
+load_dotenv()
 
-def load_config(project_id, service, ingest_time) -> dict:
+PROJECT_ID = os.environ["GOOGLE_CLOUD_PROJECT"]
+DATASET_ID = "Runn_Raw"
+TABLE_NAME = "time_offs_leave"
+SERVICE_NAME = "Data Pipeline - Time off (Leave)"
+TABLE_LOCATION = os.environ["TABLE_LOCATION"]
+RUNN_API_TOKEN = os.environ["RUNN_API_TOKEN"]
+
+
+def load_config(project_id: str, service: str, ingest_time: datetime) -> dict[str, Any]:
     return {
         "headers": runn_headers(project_id, service),
-        "dataset_id": (os.environ.get("DATASET_ID") or "Runn_Raw"),
+        "dataset_id": DATASET_ID,
         "gcp_project": project_id,
-        "table_name": target_daily_partition(
-            os.environ.get("TABLE_NAME") or "time_offs_leave", ingest_time
-        ),
-        "location": (os.environ.get("TABLE_LOCATION") or "europe-west2"),
+        "table_name": target_daily_partition(TABLE_NAME, ingest_time),
+        "location": TABLE_LOCATION,
         "service": service,
     }
 
 
-def process_dataframe(df):
+def process_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     df["importDate"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     df["startDate"] = df["startDate"].apply(
         lambda dateString: pd.Timestamp(f"{dateString}T00:00:00Z")
@@ -39,39 +48,39 @@ def process_dataframe(df):
     df["updatedAt"] = df["updatedAt"].apply(pd.Timestamp)
     df["importDate"] = df["importDate"].apply(pd.Timestamp)
 
+    ordered_df = cast(
+        pd.DataFrame,
+        df.loc[
+            :,
+            [
+                "id",
+                "personId",
+                "startDate",
+                "endDate",
+                "note",
+                "createdAt",
+                "updatedAt",
+                "minutesPerDay",
+            ],
+        ].copy(),
+    )
+    return ordered_df
 
 
-    df = df[[
-        "id",
-        "personId",
-        "startDate",
-        "endDate",
-        "note",
-        "createdAt",
-        "updatedAt",
-        "minutesPerDay"
-        ]
-    ]
-    return df
-
-
-def main(data: dict, context):
+def main(data: dict, context) -> None:
     now = datetime.now(timezone.utc)
-    config = load_config(project_id, service, now)
+    config = load_config(PROJECT_ID, SERVICE_NAME, now)
 
-    runn_api_token = access_secret_version(project_id, "RUNN_ACCESS_TOKEN")
     bigquery_client = bigquery_client_get(location=config["location"])
 
     pages = fetch_all(
-        token=runn_api_token,
+        token=RUNN_API_TOKEN,
         base_url="https://api.runn.io/time-offs/leave/",
-        service=service,
-        page_size=200
+        service=SERVICE_NAME,
+        page_size=200,
     )
 
     for batch_num, batch in enumerate(batched(pages, BATCH_SIZE)):
-        # First frame truncates partition
-        # Subsequent frames append
         disposition = "WRITE_TRUNCATE_DATA" if batch_num == 0 else "WRITE_APPEND"
 
         df = pd.concat(batch)
