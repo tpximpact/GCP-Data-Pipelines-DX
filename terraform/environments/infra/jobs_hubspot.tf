@@ -102,6 +102,26 @@ resource "google_cloud_run_v2_job" "hubspot_companies" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "HUBSPOT_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret = "HUBSPOT_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
@@ -125,6 +145,26 @@ resource "google_cloud_run_v2_job" "hubspot_deals" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "HUBSPOT_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret = "HUBSPOT_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
@@ -148,6 +188,26 @@ resource "google_cloud_run_v2_job" "hubspot_deals_stages" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "HUBSPOT_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret = "HUBSPOT_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
@@ -171,6 +231,26 @@ resource "google_cloud_run_v2_job" "hubspot_pipelines" {
 
         working_dir = "/app"
         command     = ["uv", "run", "python", "-m", "src.main"]
+
+        env {
+            name = "GOOGLE_CLOUD_PROJECT"
+            value = var.project
+        }
+
+        env {
+            name = "TABLE_LOCATION"
+            value = var.region
+        }
+
+        env {
+            name = "HUBSPOT_TOKEN"
+            value_source {
+                secret_key_ref {
+                  secret = "HUBSPOT_TOKEN"
+                  version = "latest"
+                }
+            }
+        }
       }
     }
   }
