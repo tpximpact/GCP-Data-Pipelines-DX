@@ -6,7 +6,9 @@ services:
     volumes:
       - ./cloud_functions:/cloud_functions
       - ./cloud_run_jobs:/cloud_run_jobs
+      - ./docker-images:/docker-images
       - ./data_pipeline_tools:/data-pipeline-tools
       - ./terraform:/terraform
+      - /var/run/docker.sock:/var/run/docker.sock
     stdin_open: true
     tty: true

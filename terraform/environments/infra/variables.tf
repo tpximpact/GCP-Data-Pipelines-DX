@@ -30,7 +30,6 @@ variable "deploy_serviceaccount" {
     default = "infra-deploy@tpx-dx-dashboards.iam.gserviceaccount.com"
 }
 
-
 variable "job_timeout" {
   # 30 minutes
   default = "1800s"

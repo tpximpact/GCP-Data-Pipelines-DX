@@ -1,7 +1,8 @@
 
 
-# Bootstrapping roles
-# You need to manually ensure the following roles are given to "var.deploy_serviceaccount" service account
+# Bootstrapping permissions
+# The var.deploy_serviceaccount needs sufficient permissions on GCP to edit all the GCP resources effected by `terraform apply`
+# You need to *MANUALLY* ensure the following roles are given to "var.deploy_serviceaccount" service account
 # BEFORE running terraform apply.
 
 # They are here for reference.

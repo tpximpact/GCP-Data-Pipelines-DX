@@ -12,20 +12,6 @@ resource "google_bigquery_dataset" "runn_raw" {
   }
 }
 
-resource "google_bigquery_dataset" "helper_tables" {
-  # Work out what this is for
-  dataset_id  = "Helpers"
-  description = "Dataset for helper tables"
-  location    = "europe-west2"
-
-  labels = {
-    env = var.env
-  }
-  default_encryption_configuration {
-    kms_key_name = google_kms_crypto_key.bigquery_key.id
-  }
-}
-
 resource "google_bigquery_dataset" "hubspot_raw" {
   dataset_id  = "Hubspot_Raw"
   description = "Dataset for hubspot raw data"

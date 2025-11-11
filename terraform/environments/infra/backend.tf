@@ -1,7 +1,7 @@
 terraform {
 
   backend "gcs" {
-    bucket = "tpx-dx-dashboards-data-pipelines-tf-state-prod"
+    bucket = "tpx-dx-dashboards-tf-state"
     prefix = "terraform/state"
   }
 
