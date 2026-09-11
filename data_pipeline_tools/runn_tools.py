@@ -1,10 +1,30 @@
+import os
 import time
 import pandas as pd
 from data_pipeline_tools.auth import runn_headers_base
 import requests
 
 DEFAULT_MAX_ATTEMPTS = 5
+# Network-level failures (timeouts, connection resets) are retried far more
+# generously than HTTP error statuses. Since 2026-09-03 roughly one Runn
+# request in four has stalled for exactly 135s or 270s before answering 200,
+# so a stalled request is aborted after the request timeout and simply asked
+# again. At a 26% stall rate, 5 attempts would abandon a page about once in
+# every 3,000 requests, i.e. most 1,800-page walks of /actuals would die;
+# 20 attempts makes that roughly one in 10^11.
+DEFAULT_MAX_NETWORK_ATTEMPTS = 20
 DEFAULT_PAGE_SIZE = 500
+# Runn normally answers in 0.1-0.6s. 10s is ample headroom on the healthy
+# path and turns a 135s/270s stall into a 10s cost plus one retry, instead of
+# letting it eat the Cloud Run task timeout (see incidents 2026-09-01 and
+# 2026-09-03..10). Override per job with RUNN_REQUEST_TIMEOUT_SECONDS.
+REQUEST_TIMEOUT_SECONDS = 10
+
+
+def request_timeout_seconds() -> float:
+    return float(
+        os.environ.get("RUNN_REQUEST_TIMEOUT_SECONDS", REQUEST_TIMEOUT_SECONDS)
+    )
 
 
 def reference_value_get(reference_name: str, references: list):
@@ -34,8 +54,27 @@ def page_get(
     page_size,
     attempt=0,
     max_attempts=DEFAULT_MAX_ATTEMPTS,
+    network_attempt=0,
 ):
-    response = requests.get(url=url, headers=headers)
+    try:
+        response = requests.get(
+            url=url, headers=headers, timeout=request_timeout_seconds()
+        )
+    except requests.exceptions.RequestException as e:
+        if network_attempt >= DEFAULT_MAX_NETWORK_ATTEMPTS:
+            raise Exception(
+                f"Max attempts {DEFAULT_MAX_NETWORK_ATTEMPTS} exceeded: request failed: {e}"
+            ) from e
+        print(f"(Attempt {network_attempt}) Request failed: {e}. Retrying..")
+        return page_get(
+            url,
+            headers,
+            page_size,
+            attempt=attempt,
+            max_attempts=max_attempts,
+            network_attempt=network_attempt + 1,
+        )
+
     if response.status_code == 200:
         print("OK")
         data = response.json()
@@ -56,7 +95,9 @@ def page_get(
                 f"Max attempts {max_attempts} exceeded: {response.status_code}, {response.text}"
             )
         handle_runn_rate_limits(response)
-        return page_get(url, headers, page_size, attempt=attempt + 1)
+        return page_get(
+            url, headers, page_size, attempt=attempt + 1, max_attempts=max_attempts
+        )
 
     else:
         if attempt > max_attempts:
@@ -67,7 +108,9 @@ def page_get(
         print(
             f"(Attempt {attempt}) Status code {response.status_code} returned. Retrying.."
         )
-        return page_get(url, headers, page_size, attempt=attempt + 1)
+        return page_get(
+            url, headers, page_size, attempt=attempt + 1, max_attempts=max_attempts
+        )
 
 
 def fetch_all(token, base_url, service, page_size=DEFAULT_PAGE_SIZE):
